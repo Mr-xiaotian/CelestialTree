@@ -1,16 +1,39 @@
 OUT := bin
-BIN := $(OUT)/main.exe
 
-SRC := main.go
-SRC += $(wildcard internal/tree/*.go)
+MAIN_BIN  := $(OUT)/celestialtree.exe
+BENCH_BIN := $(OUT)/bench_emit.exe
 
-.PHONY: all run
+MAIN_SRC  := main.go
+MAIN_SRC  += $(wildcard internal/tree/*.go)
 
-all: run
+BENCH_SRC := tools/bench/bench_emit.go
 
-run: $(BIN)
-	$(BIN)
+.PHONY: all build run bench clean
 
-# 编译规则
-$(BIN): $(SRC)
+all: build
+
+# ---------- build ----------
+
+build: $(MAIN_BIN) $(BENCH_BIN)
+
+$(OUT):
+	mkdir -p $(OUT)
+
+$(MAIN_BIN): $(OUT) $(MAIN_SRC)
 	go build -o $@ .
+
+$(BENCH_BIN): $(OUT) $(BENCH_SRC)
+	go build -o $@ $(BENCH_SRC)
+
+# ---------- run ----------
+
+run: $(MAIN_BIN)
+	$(MAIN_BIN)
+
+bench_emit: $(BENCH_BIN)
+	$(BENCH_BIN)
+
+# ---------- clean ----------
+
+clean:
+	rm -rf $(OUT)
