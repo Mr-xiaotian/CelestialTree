@@ -38,6 +38,7 @@ func main() {
 		Addr:              addr,
 		Handler:           mux,
 		ReadHeaderTimeout: 3 * time.Second,
+		IdleTimeout:       60 * time.Second,
 	}
 
 	log.Printf("CelestialTree listening on http://%s", addr)
