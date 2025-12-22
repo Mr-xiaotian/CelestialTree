@@ -137,3 +137,38 @@ func (s *Store) Heads() []uint64 {
 	}
 	return out
 }
+
+func (s *Store) DescendantsTree(rootID uint64) (EventTreeNode, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	// 根节点必须存在
+	if _, ok := s.events[rootID]; !ok {
+		return EventTreeNode{}, false
+	}
+
+	visited := make(map[uint64]struct{})
+
+	var build func(id uint64) EventTreeNode
+	build = func(id uint64) EventTreeNode {
+		visited[id] = struct{}{}
+
+		node := EventTreeNode{
+			ID:       id,
+			Children: []EventTreeNode{},
+		}
+
+		childrenSet := s.children[id]
+		for childID := range childrenSet {
+			if _, seen := visited[childID]; seen {
+				continue
+			}
+			childNode := build(childID)
+			node.Children = append(node.Children, childNode)
+		}
+
+		return node
+	}
+
+	return build(rootID), true
+}

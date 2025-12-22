@@ -11,6 +11,12 @@ type Event struct {
 	Meta     map[string]any `json:"meta,omitempty"`
 }
 
+// EventTreeNode 用于表示某个事件及其所有后代（树形结构）
+type EventTreeNode struct {
+	ID       uint64          `json:"id"`
+	Children []EventTreeNode `json:"children"`
+}
+
 // EmitRequest 是客户端发来的“写入事件”的请求体。
 type EmitRequest struct {
 	Type    string         `json:"type"`

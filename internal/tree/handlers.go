@@ -15,6 +15,7 @@ func RegisterRoutes(mux *http.ServeMux, store *Store) {
 	mux.HandleFunc("/heads", handleHeads(store))
 	mux.HandleFunc("/subscribe", handleSubscribe(store))
 	mux.HandleFunc("/healthz", handleHealthz())
+	mux.HandleFunc("/descendants/", handleDescendants(store))
 }
 
 func handleEmit(store *Store) http.HandlerFunc {
@@ -139,5 +140,29 @@ func handleSubscribe(store *Store) http.HandlerFunc {
 				flusher.Flush()
 			}
 		}
+	}
+}
+
+func handleDescendants(store *Store) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			writeJSON(w, 405, map[string]any{"error": "method not allowed"})
+			return
+		}
+
+		idStr := strings.TrimPrefix(r.URL.Path, "/descendants/")
+		id, err := strconv.ParseUint(idStr, 10, 64)
+		if err != nil || id == 0 {
+			writeJSON(w, 400, map[string]any{"error": "bad id"})
+			return
+		}
+
+		tree, ok := store.DescendantsTree(id)
+		if !ok {
+			writeJSON(w, 404, map[string]any{"error": "not found"})
+			return
+		}
+
+		writeJSON(w, 200, tree)
 	}
 }
