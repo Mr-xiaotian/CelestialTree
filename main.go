@@ -29,7 +29,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("genesis failed: %v", err)
 	}
-	log.Printf("genesis id=%d hash=%s", gen.ID, gen.Hash)
+	log.Printf("genesis id=%d", gen.ID)
 
 	mux := http.NewServeMux()
 	tree.RegisterRoutes(mux, store)

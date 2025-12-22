@@ -67,7 +67,6 @@ func (s *Store) Emit(req EmitRequest) (Event, error) {
 		Payload:  req.Payload,
 		Meta:     req.Meta,
 	}
-	ev.Hash = hashEvent(ev)
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
