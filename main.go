@@ -1,6 +1,8 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -9,6 +11,12 @@ import (
 )
 
 func main() {
+	host := flag.String("host", "127.0.0.1", "server listen host")
+	port := flag.Int("port", 7777, "server listen port")
+	flag.Parse()
+
+	addr := fmt.Sprintf("%s:%d", *host, *port)
+
 	store := tree.NewStore()
 
 	// 可选：创世事件（Genesis）
@@ -27,12 +35,12 @@ func main() {
 	tree.RegisterRoutes(mux, store)
 
 	srv := &http.Server{
-		Addr:              ":7777",
+		Addr:              addr,
 		Handler:           mux,
 		ReadHeaderTimeout: 3 * time.Second,
 	}
 
-	log.Printf("CelestialTree listening on http://127.0.0.1:7777")
+	log.Printf("CelestialTree listening on http://%s", addr)
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("server error: %v", err)
 	}

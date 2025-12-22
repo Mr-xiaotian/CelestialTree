@@ -11,7 +11,7 @@ import (
 func hashEvent(ev Event) string {
 	type H struct {
 		ID       uint64         `json:"id"`
-		TimeUnix int64          `json:"time_unix"`
+		TimeUnix int64          `json:"time_unix_nano"`
 		Type     string         `json:"type"`
 		Parents  []uint64       `json:"parents"`
 		Payload  map[string]any `json:"payload,omitempty"`

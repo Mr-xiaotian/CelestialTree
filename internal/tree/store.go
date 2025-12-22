@@ -56,7 +56,7 @@ func (s *Store) Emit(req EmitRequest) (Event, error) {
 		parents = append(parents, p)
 	}
 
-	now := time.Now().Unix()
+	now := time.Now().UnixNano()
 	id := atomic.AddUint64(&s.nextID, 1)
 
 	ev := Event{
