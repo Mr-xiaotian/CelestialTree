@@ -1,6 +1,7 @@
 package tree
 
 import (
+	"celestialtree/internal/version"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -16,6 +17,7 @@ func RegisterRoutes(mux *http.ServeMux, store *Store) {
 	mux.HandleFunc("/heads", handleHeads(store))
 	mux.HandleFunc("/subscribe", handleSubscribe(store))
 	mux.HandleFunc("/healthz", handleHealthz())
+	mux.HandleFunc("/version", handleVersion())
 }
 
 func handleEmit(store *Store) http.HandlerFunc {
@@ -164,5 +166,16 @@ func handleSubscribe(store *Store) http.HandlerFunc {
 				flusher.Flush()
 			}
 		}
+	}
+}
+
+func handleVersion() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, 200, map[string]any{
+			"name":    version.Name,
+			"version": version.Version,
+			"commit":  version.GitCommit,
+			"build":   version.BuildTime,
+		})
 	}
 }

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"celestialtree/internal/tree"
+	"celestialtree/internal/version"
 )
 
 func main() {
@@ -39,6 +40,14 @@ func main() {
 		ReadHeaderTimeout: 3 * time.Second,
 		IdleTimeout:       60 * time.Second,
 	}
+
+	log.Printf(
+		"%s %s (%s) built at %s",
+		version.Name,
+		version.Version,
+		version.GitCommit,
+		version.BuildTime,
+	)
 
 	log.Printf("CelestialTree listening on http://%s", addr)
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {

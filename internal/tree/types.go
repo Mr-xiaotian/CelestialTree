@@ -1,6 +1,6 @@
 package tree
 
-// Event 是 CelestialTree 的“最小历史原子”：不可变、可追加、可分岔、可合并。
+// Event 是 CelestialTree 的“最小历史原子”。
 type Event struct {
 	ID           uint64   `json:"id"`
 	TimeUnixNano int64    `json:"time_unix_nano"`

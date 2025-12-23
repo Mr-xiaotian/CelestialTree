@@ -1,5 +1,6 @@
 bin/
 logs/
+temp/
 
 .env
 _preview.ipynb
