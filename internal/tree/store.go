@@ -60,12 +60,12 @@ func (s *Store) Emit(req EmitRequest) (Event, error) {
 	id := atomic.AddUint64(&s.nextID, 1)
 
 	ev := Event{
-		ID:       id,
-		TimeUnix: now,
-		Type:     req.Type,
-		Parents:  parents,
-		Payload:  req.Payload,
-		Meta:     req.Meta,
+		ID:           id,
+		TimeUnixNano: now,
+		Type:         req.Type,
+		Parents:      parents,
+		Message:      req.Message,
+		Payload:      req.Payload,
 	}
 
 	s.mu.Lock()

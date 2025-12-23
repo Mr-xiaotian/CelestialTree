@@ -14,9 +14,10 @@ import (
 )
 
 type EmitReq struct {
-	Type    string                 `json:"type"`
-	Parents []uint64               `json:"parents"`
-	Payload map[string]interface{} `json:"payload"`
+	Type    string   `json:"type"`
+	Parents []uint64 `json:"parents"`
+	Message string   `json:"message"`
+	Payload []byte   `json:"payload"`
 }
 
 func main() {
@@ -40,9 +41,8 @@ func main() {
 	reqBody := EmitReq{
 		Type:    "bench",
 		Parents: []uint64{}, // chain parent 可自行改
-		Payload: map[string]interface{}{
-			"v": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", // ~32B
-		},
+		Message: "bench payload 32B",
+		Payload: []byte("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"), // 32 bytes
 	}
 
 	var ok uint64

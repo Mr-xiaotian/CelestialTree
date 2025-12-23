@@ -23,13 +23,12 @@ func main() {
 	gen, err := store.Emit(tree.EmitRequest{
 		Type:    "genesis",
 		Parents: nil,
-		Payload: map[string]any{"msg": "CelestialTree begins."},
-		Meta:    map[string]any{"version": "v0"},
+		Message: "CelestialTree begins.",
 	})
 	if err != nil {
 		log.Fatalf("genesis failed: %v", err)
 	}
-	log.Printf("genesis id=%d", gen.ID)
+	log.Printf("genesis id=%d message=%s", gen.ID, gen.Message)
 
 	mux := http.NewServeMux()
 	tree.RegisterRoutes(mux, store)

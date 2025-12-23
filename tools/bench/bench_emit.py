@@ -1,10 +1,10 @@
 # _*_ coding: utf-8 _*_
 
+import os
 import argparse
-import json
+import base64
 import statistics
 import time
-from typing import Any
 
 import requests
 from celestialflow import TaskManager
@@ -19,19 +19,20 @@ session = requests.Session()
 # 单个 Emit 任务的执行函数
 # ===============================
 
-def emit_once(base_url, payload_txt, _) -> float:
+def emit_once(base_url, payload_size, _) -> float:
     """
     执行一次 /emit 请求
     返回：本次请求的 latency（ms）
     """
+    payload_raw = os.urandom(payload_size)
+    payload_b64 = base64.b64encode(payload_raw).decode("ascii")
+
     url = f"{base_url}/emit"
     payload = {
         "type": "bench",
         "parents": [],
-        "payload": {
-            "v": payload_txt
-        },
-        "meta": {}
+        "message": f"bench payload {payload_size}B",
+        "payload": payload_b64 
     }
 
     t0 = now_ms()
@@ -70,12 +71,9 @@ def main():
     ap.add_argument("--payload-bytes", type=int, default=32)
     args = ap.parse_args()
 
-    # ---- 构造 payload ----
-    payload_str = "x" * args.payload_bytes
-
     # ---- 构造任务列表 ----
     task_list = [
-        (args.base, payload_str, index)
+        (args.base, args.payload_bytes, index)
         for index in range(args.n)
     ]
 
