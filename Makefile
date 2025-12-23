@@ -24,7 +24,7 @@ BENCH_SRC := tools/bench/bench_emit.go
 VERSION ?= dev
 
 GIT_COMMIT := $(shell git rev-parse --short HEAD 2>nul || echo unknown)
-BUILD_TIME := $(shell go env GOVERSION 2>nul)
+BUILD_TIME := $(shell go run internal/tools/now.go 2>nul || echo unknown)
 
 LDFLAGS := -X celestialtree/internal/version.Version=$(VERSION) \
            -X celestialtree/internal/version.GitCommit=$(GIT_COMMIT) \
