@@ -127,7 +127,7 @@ func handleHealthz() http.HandlerFunc {
 }
 
 // 为了避免 handlers.go 过长，SSE 的 handler 放到 sse_handler.go 也行。
-// 这里先留在一个文件里：你要更细拆我也可以继续拆。
+// 这里先留在一个文件里。
 func handleSubscribe(store *Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {

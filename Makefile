@@ -8,16 +8,10 @@ BENCH_NAME := bench_emit
 MAIN_BIN  := $(OUT)/$(APP_NAME)
 BENCH_BIN := $(OUT)/$(BENCH_NAME)
 
-# Windows 下自动补 .exe（make 自己判断）
-ifeq ($(OS),Windows_NT)
-	MAIN_BIN  := $(MAIN_BIN).exe
-	BENCH_BIN := $(BENCH_BIN).exe
-endif
-
 MAIN_SRC  := main.go
 MAIN_SRC  += $(wildcard internal/**/*.go)
 
-BENCH_SRC := tools/bench/bench_emit.go
+BENCH_SRC := bench/bench_emit.go
 
 # ---------- version ----------
 
@@ -41,8 +35,7 @@ all: build
 build: $(MAIN_BIN) $(BENCH_BIN)
 
 $(OUT):
-	@go env GOMOD >/dev/null 2>&1 || (echo "not in a go module" && exit 1)
-	@mkdir $(OUT) 2>nul || true
+	mkdir $(OUT)
 
 $(MAIN_BIN): $(OUT) $(MAIN_SRC)
 	go build -ldflags "$(LDFLAGS)" -o $@ .
