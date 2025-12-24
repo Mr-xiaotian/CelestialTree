@@ -26,5 +26,5 @@ type EmitRequest struct {
 
 // EmitResponse 是 /emit 返回的响应体。
 type EmitResponse struct {
-	Event Event `json:"event"`
+	ID uint64 `json:"id"`
 }

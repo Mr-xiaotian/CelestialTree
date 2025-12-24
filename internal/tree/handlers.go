@@ -26,17 +26,20 @@ func handleEmit(store *Store) http.HandlerFunc {
 			writeJSON(w, 405, map[string]any{"error": "method not allowed"})
 			return
 		}
+
 		var req EmitRequest
 		if err := readJSON(r, &req); err != nil {
 			writeJSON(w, 400, map[string]any{"error": "invalid json", "detail": err.Error()})
 			return
 		}
+
 		ev, err := store.Emit(req)
 		if err != nil {
 			writeJSON(w, 400, map[string]any{"error": err.Error()})
 			return
 		}
-		writeJSON(w, 200, EmitResponse{Event: ev})
+
+		writeJSON(w, 200, EmitResponse{ID: ev.ID})
 	}
 }
 
@@ -148,7 +151,7 @@ func handleSubscribe(store *Store) http.HandlerFunc {
 		_, ch, cancel := store.Subscribe()
 		defer cancel()
 
-		fmt.Fprintf(w, "event: hello\ndata: %s\n\n", `{"msg":"subscribed"}`)
+		fmt.Fprintf(w, "event: hello\ndata: %s\n\n", `{"message":"subscribed"}`)
 		flusher.Flush()
 
 		ctx := r.Context()
