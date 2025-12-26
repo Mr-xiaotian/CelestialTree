@@ -14,7 +14,7 @@ import (
 // - heads:     当前没有子节点的事件集合（叶子集合）
 // - subs:      订阅者集合（用于 SSE 广播）
 type Store struct {
-	mu sync.RWMutex
+	mu sync.Mutex // Maybe use RWMutex future
 
 	nextID uint64
 
@@ -100,15 +100,16 @@ func (s *Store) Emit(req EmitRequest) (Event, error) {
 }
 
 func (s *Store) Get(id uint64) (Event, bool) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	ev, ok := s.events[id]
 	return ev, ok
 }
 
 func (s *Store) Children(id uint64) ([]uint64, bool) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	if _, ok := s.events[id]; !ok {
 		return nil, false
@@ -127,8 +128,8 @@ func (s *Store) Children(id uint64) ([]uint64, bool) {
 }
 
 func (s *Store) Heads() []uint64 {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	out := make([]uint64, 0, len(s.heads))
 	for id := range s.heads {
@@ -138,8 +139,8 @@ func (s *Store) Heads() []uint64 {
 }
 
 func (s *Store) DescendantsTree(rootID uint64) (EventTreeNode, bool) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	// 根节点必须存在
 	if _, ok := s.events[rootID]; !ok {
