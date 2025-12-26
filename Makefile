@@ -2,27 +2,24 @@
 
 OUT := bin
 
-APP_NAME := celestialtree
+APP_NAME   := celestialtree
 BENCH_NAME := bench_emit
+NOW_NAME   := now
 
 MAIN_BIN  := $(OUT)/$(APP_NAME)
 BENCH_BIN := $(OUT)/$(BENCH_NAME)
+NOW_BIN   := $(OUT)/$(NOW_NAME)
 
 MAIN_SRC  := main.go
 MAIN_SRC  += $(wildcard internal/**/*.go)
-
 BENCH_SRC := bench/bench_emit.go
+NOW_SRC   := internal/tools/now.go
 
 # ---------- version ----------
 
 VERSION ?= dev
 
 GIT_COMMIT := $(shell git rev-parse --short HEAD 2>nul || echo unknown)
-BUILD_TIME := $(shell go run internal/tools/now.go 2>nul || echo unknown)
-
-LDFLAGS := -X celestialtree/internal/version.Version=$(VERSION) \
-           -X celestialtree/internal/version.GitCommit=$(GIT_COMMIT) \
-           -X celestialtree/internal/version.BuildTime=$(BUILD_TIME)
 
 # ---------- phony ----------
 
@@ -32,16 +29,23 @@ all: build
 
 # ---------- build ----------
 
-build: $(MAIN_BIN) $(BENCH_BIN)
+build: $(MAIN_BIN) $(BENCH_BIN) $(NOW_BIN)
 
 $(OUT):
 	mkdir $(OUT)
 
-$(MAIN_BIN): $(OUT) $(MAIN_SRC)
-	go build -ldflags "$(LDFLAGS)" -o $@ .
+$(MAIN_BIN): $(OUT) $(NOW_BIN) $(MAIN_SRC)
+	go build -ldflags "\
+	-X celestialtree/internal/version.Version=$(VERSION) \
+	-X celestialtree/internal/version.GitCommit=$(GIT_COMMIT) \
+	-X celestialtree/internal/version.BuildTime=$(shell bin/now)" \
+	-o $@ .
 
 $(BENCH_BIN): $(OUT) $(BENCH_SRC)
 	go build -o $@ $(BENCH_SRC)
+
+$(NOW_BIN): $(OUT) $(NOW_SRC)
+	go build -o $@ $(NOW_SRC)
 
 # ---------- run ----------
 
