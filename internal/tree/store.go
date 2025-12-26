@@ -155,14 +155,21 @@ func (s *Store) DescendantsTree(rootID uint64) (EventTreeNode, bool) {
 		node := EventTreeNode{
 			ID:       id,
 			Children: []EventTreeNode{},
+			IsRef:    false,
 		}
 
 		childrenSet := s.children[id]
 		for childID := range childrenSet {
+			var childNode EventTreeNode
 			if _, seen := visited[childID]; seen {
-				continue
+				childNode = EventTreeNode{
+					childID,
+					[]EventTreeNode{},
+					true, // 已访问
+				}
+			} else {
+				childNode = build(childID)
 			}
-			childNode := build(childID)
 			node.Children = append(node.Children, childNode)
 		}
 

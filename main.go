@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"celestialtree/internal/tree"
@@ -20,16 +21,16 @@ func main() {
 
 	store := tree.NewStore()
 
-	// 可选：创世事件（Genesis）
-	gen, err := store.Emit(tree.EmitRequest{
+	// 创世事件（Genesis）
+	_, err := store.Emit(tree.EmitRequest{
 		Type:    "genesis",
 		Parents: nil,
 		Message: "CelestialTree begins.",
 	})
 	if err != nil {
 		log.Fatalf("genesis failed: %v", err)
+		os.Exit(1)
 	}
-	log.Printf("genesis id=%d message=%s", gen.ID, gen.Message)
 
 	mux := http.NewServeMux()
 	tree.RegisterRoutes(mux, store)
@@ -42,7 +43,7 @@ func main() {
 	}
 
 	log.Printf(
-		"%s %s (%s) built at %s",
+		"%s %s(%s) built at %s",
 		version.Name,
 		version.Version,
 		version.GitCommit,

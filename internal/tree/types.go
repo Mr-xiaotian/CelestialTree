@@ -14,6 +14,7 @@ type Event struct {
 type EventTreeNode struct {
 	ID       uint64          `json:"id"`
 	Children []EventTreeNode `json:"children"`
+	IsRef    bool            `json:"is_ref"`
 }
 
 // EmitRequest 是客户端发来的“写入事件”的请求体。
