@@ -143,7 +143,7 @@ func handleHeads(store *Store) http.HandlerFunc {
 			writeJSON(w, 405, map[string]any{"error": "method not allowed"})
 			return
 		}
-		writeJSON(w, 200, map[string]any{"heads": store.Heads()})
+		writeJSON(w, 200, store.Heads())
 	}
 }
 
