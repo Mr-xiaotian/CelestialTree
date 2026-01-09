@@ -19,7 +19,13 @@ NOW_SRC   := internal/tools/now.go
 
 VERSION ?= dev
 
-GIT_COMMIT := $(shell git rev-parse --short HEAD 2>nul || echo unknown)
+ifeq ($(OS),Windows_NT)
+  NULLDEV := nul
+else
+  NULLDEV := /dev/null
+endif
+
+GIT_COMMIT := $(shell git rev-parse --short HEAD 2>$(NULLDEV) || echo unknown)
 
 # ---------- phony ----------
 
