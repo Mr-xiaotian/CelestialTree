@@ -14,6 +14,7 @@ func RegisterRoutes(mux *http.ServeMux, store *Store) {
 	mux.HandleFunc("/event/", handleGetEvent(store))
 	mux.HandleFunc("/children/", handleChildren(store))
 	mux.HandleFunc("/descendants/", handleDescendants(store))
+	mux.HandleFunc("/ancestors/", handleAncestors(store))
 	mux.HandleFunc("/heads", handleHeads(store))
 	mux.HandleFunc("/subscribe", handleSubscribe(store))
 	mux.HandleFunc("/healthz", handleHealthz())
@@ -85,7 +86,7 @@ func handleChildren(store *Store) http.HandlerFunc {
 			writeJSON(w, 404, map[string]any{"error": "not found"})
 			return
 		}
-		writeJSON(w, 200, map[string]any{"id": id, "children": children})
+		writeJSON(w, 200, children)
 	}
 }
 
@@ -110,6 +111,29 @@ func handleDescendants(store *Store) http.HandlerFunc {
 		}
 
 		writeJSON(w, 200, tree)
+	}
+}
+
+func handleAncestors(store *Store) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			writeJSON(w, 405, map[string]any{"error": "method not allowed"})
+			return
+		}
+
+		idStr := strings.TrimPrefix(r.URL.Path, "/ancestors/")
+		id, err := strconv.ParseUint(idStr, 10, 64)
+		if err != nil || id == 0 {
+			writeJSON(w, 400, map[string]any{"error": "bad id"})
+		}
+
+		ancestors, ok := store.Ancestors(id)
+		if !ok {
+			writeJSON(w, 404, map[string]any{"error": "not found"})
+			return
+		}
+
+		writeJSON(w, 200, ancestors)
 	}
 }
 
