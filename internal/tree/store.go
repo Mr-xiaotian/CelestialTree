@@ -132,7 +132,6 @@ func (s *Store) DescendantsTree(rootID uint64) (EventTreeNode, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	// 根节点必须存在
 	if _, ok := s.events[rootID]; !ok {
 		return EventTreeNode{}, false
 	}
@@ -141,36 +140,63 @@ func (s *Store) DescendantsTree(rootID uint64) (EventTreeNode, bool) {
 
 	var build func(id uint64) EventTreeNode
 	build = func(id uint64) EventTreeNode {
+		// 如果已经见过，返回 ref 节点（不再继续展开）
+		if _, seen := visited[id]; seen {
+			return EventTreeNode{ID: id, IsRef: true, Children: nil}
+		}
 		visited[id] = struct{}{}
 
-		node := EventTreeNode{
-			ID:           id,
-			TimeUnixNano: s.events[id].TimeUnixNano,
-			Type:         s.events[id].Type,
-			Children:     []EventTreeNode{},
-			IsRef:        false,
-		}
+		node := EventTreeNode{ID: id, Children: []EventTreeNode{}}
 
-		childrenSet := s.children[id]
-		for childID := range childrenSet {
-			var childNode EventTreeNode
-			if _, seen := visited[childID]; seen {
-				childNode = EventTreeNode{
-					childID,
-					s.events[childID].TimeUnixNano,
-					s.events[childID].Type,
-					[]EventTreeNode{},
-					true, // 已访问
-				}
-			} else {
-				childNode = build(childID)
-			}
-			node.Children = append(node.Children, childNode)
+		for childID := range s.children[id] {
+			node.Children = append(node.Children, build(childID))
 		}
-
 		return node
 	}
 
+	return build(rootID), true
+}
+
+func (s *Store) DescendantsTreeView(rootID uint64) (EventTreeViewNode, bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	rootEv, ok := s.events[rootID]
+	if !ok {
+		return EventTreeViewNode{}, false
+	}
+
+	visited := make(map[uint64]struct{})
+
+	var build func(id uint64) EventTreeViewNode
+	build = func(id uint64) EventTreeViewNode {
+		if _, seen := visited[id]; seen {
+			// ref 节点也带上 meta
+			ev := s.events[id]
+			return EventTreeViewNode{
+				ID:           id,
+				Type:         ev.Type,
+				TimeUnixNano: ev.TimeUnixNano,
+				IsRef:        true,
+			}
+		}
+		visited[id] = struct{}{}
+
+		ev := s.events[id]
+		node := EventTreeViewNode{
+			ID:           id,
+			Type:         ev.Type,
+			TimeUnixNano: ev.TimeUnixNano,
+			Children:     []EventTreeViewNode{},
+		}
+
+		for childID := range s.children[id] {
+			node.Children = append(node.Children, build(childID))
+		}
+		return node
+	}
+
+	_ = rootEv
 	return build(rootID), true
 }
 

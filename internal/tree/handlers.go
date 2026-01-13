@@ -104,13 +104,30 @@ func handleDescendants(store *Store) http.HandlerFunc {
 			return
 		}
 
-		tree, ok := store.DescendantsTree(id)
-		if !ok {
-			writeJSON(w, 404, map[string]any{"error": "not found"})
+		view := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("view")))
+		switch view {
+		case "", "struct":
+			tree, ok := store.DescendantsTree(id)
+			if !ok {
+				writeJSON(w, 404, map[string]any{"error": "not found"})
+				return
+			}
+			writeJSON(w, 200, tree)
+			return
+
+		case "meta":
+			tree, ok := store.DescendantsTreeView(id)
+			if !ok {
+				writeJSON(w, 404, map[string]any{"error": "not found"})
+				return
+			}
+			writeJSON(w, 200, tree)
+			return
+
+		default:
+			writeJSON(w, 400, map[string]any{"error": "bad view", "allowed": []string{"struct", "meta"}})
 			return
 		}
-
-		writeJSON(w, 200, tree)
 	}
 }
 
