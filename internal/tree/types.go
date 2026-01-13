@@ -12,9 +12,11 @@ type Event struct {
 
 // EventTreeNode 用于表示某个事件及其所有后代（树形结构）
 type EventTreeNode struct {
-	ID       uint64          `json:"id"`
-	Children []EventTreeNode `json:"children"`
-	IsRef    bool            `json:"is_ref"`
+	ID           uint64          `json:"id"`
+	TimeUnixNano int64           `json:"time_unix_nano"`
+	Type         string          `json:"type"`
+	Children     []EventTreeNode `json:"children"`
+	IsRef        bool            `json:"is_ref"`
 }
 
 // EmitRequest 是客户端发来的“写入事件”的请求体。

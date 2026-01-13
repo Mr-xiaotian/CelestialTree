@@ -144,9 +144,11 @@ func (s *Store) DescendantsTree(rootID uint64) (EventTreeNode, bool) {
 		visited[id] = struct{}{}
 
 		node := EventTreeNode{
-			ID:       id,
-			Children: []EventTreeNode{},
-			IsRef:    false,
+			ID:           id,
+			TimeUnixNano: s.events[id].TimeUnixNano,
+			Type:         s.events[id].Type,
+			Children:     []EventTreeNode{},
+			IsRef:        false,
 		}
 
 		childrenSet := s.children[id]
@@ -155,6 +157,8 @@ func (s *Store) DescendantsTree(rootID uint64) (EventTreeNode, bool) {
 			if _, seen := visited[childID]; seen {
 				childNode = EventTreeNode{
 					childID,
+					s.events[childID].TimeUnixNano,
+					s.events[childID].Type,
 					[]EventTreeNode{},
 					true, // 已访问
 				}
