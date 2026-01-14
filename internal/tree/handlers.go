@@ -15,6 +15,7 @@ func RegisterRoutes(mux *http.ServeMux, store *Store) {
 	mux.HandleFunc("/children/", handleChildren(store))
 	mux.HandleFunc("/descendants/", handleDescendants(store))
 	mux.HandleFunc("/ancestors/", handleAncestors(store))
+	mux.HandleFunc("/provenance/", handleProvenance(store))
 	mux.HandleFunc("/heads", handleHeads(store))
 	mux.HandleFunc("/subscribe", handleSubscribe(store))
 	mux.HandleFunc("/healthz", handleHealthz())
@@ -151,6 +152,47 @@ func handleAncestors(store *Store) http.HandlerFunc {
 		}
 
 		writeJSON(w, 200, ancestors)
+	}
+}
+
+func handleProvenance(store *Store) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			writeJSON(w, 405, ResponseError{Error: "method not allowed"})
+			return
+		}
+
+		idStr := strings.TrimPrefix(r.URL.Path, "/provenance/")
+		id, err := strconv.ParseUint(idStr, 10, 64)
+		if err != nil || id == 0 {
+			writeJSON(w, 400, ResponseError{Error: "bad id"})
+			return
+		}
+
+		view := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("view")))
+		switch view {
+		case "", "struct":
+			tree, ok := store.ProvenanceTree(id)
+			if !ok {
+				writeJSON(w, 404, ResponseError{Error: "not found"})
+				return
+			}
+			writeJSON(w, 200, tree)
+			return
+
+		case "meta":
+			tree, ok := store.ProvenanceTreeView(id)
+			if !ok {
+				writeJSON(w, 404, ResponseError{Error: "not found"})
+				return
+			}
+			writeJSON(w, 200, tree)
+			return
+
+		default:
+			writeJSON(w, 400, ResponseError{Error: "bad view", Detail: fmt.Sprintf("unknown view: %s", view)})
+			return
+		}
 	}
 }
 

@@ -10,20 +10,36 @@ type Event struct {
 	Payload      []byte   `json:"payload,omitempty"`
 }
 
-// EventTreeNode 用于表示某个事件及其所有后代（树形结构）
-type EventTreeNode struct {
-	ID       uint64          `json:"id"`
-	IsRef    bool            `json:"is_ref"`
-	Children []EventTreeNode `json:"children"`
+// DescendantsTree 用于表示某个事件及其所有后代（树形结构）
+type DescendantsTree struct {
+	ID       uint64            `json:"id"`
+	IsRef    bool              `json:"is_ref"`
+	Children []DescendantsTree `json:"children"`
 }
 
-// EventTreeViewNode 用于表示某个事件及其所有后代（树形结构），并且包含时间戳
-type EventTreeViewNode struct {
-	ID           uint64              `json:"id"`
-	TimeUnixNano int64               `json:"time_unix_nano"`
-	Type         string              `json:"type"`
-	IsRef        bool                `json:"is_ref"`
-	Children     []EventTreeViewNode `json:"children"`
+// DescendantsTreeView 用于表示某个事件及其所有后代（树形结构），并且包含时间戳
+type DescendantsTreeView struct {
+	ID           uint64                `json:"id"`
+	TimeUnixNano int64                 `json:"time_unix_nano"`
+	Type         string                `json:"type"`
+	IsRef        bool                  `json:"is_ref"`
+	Children     []DescendantsTreeView `json:"children"`
+}
+
+// ProvenanceTree 用于表示某个事件及其所有祖先（树形结构，向上追溯）
+type ProvenanceTree struct {
+	ID      uint64           `json:"id"`
+	IsRef   bool             `json:"is_ref"`
+	Parents []ProvenanceTree `json:"parents"`
+}
+
+// ProvenanceTreeView 用于表示某个事件及其所有祖先（树形结构），并且包含时间戳和类型
+type ProvenanceTreeView struct {
+	ID           uint64               `json:"id"`
+	TimeUnixNano int64                `json:"time_unix_nano"`
+	Type         string               `json:"type"`
+	IsRef        bool                 `json:"is_ref"`
+	Parents      []ProvenanceTreeView `json:"parents"`
 }
 
 // EmitRequest 是客户端发来的“写入事件”的请求体。

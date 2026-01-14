@@ -128,25 +128,25 @@ func (s *Store) Children(id uint64) ([]uint64, bool) {
 	return out, true
 }
 
-func (s *Store) DescendantsTree(rootID uint64) (EventTreeNode, bool) {
+func (s *Store) DescendantsTree(rootID uint64) (DescendantsTree, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	if _, ok := s.events[rootID]; !ok {
-		return EventTreeNode{}, false
+		return DescendantsTree{}, false
 	}
 
 	visited := make(map[uint64]struct{})
 
-	var build func(id uint64) EventTreeNode
-	build = func(id uint64) EventTreeNode {
+	var build func(id uint64) DescendantsTree
+	build = func(id uint64) DescendantsTree {
 		// 如果已经见过，返回 ref 节点（不再继续展开）
 		if _, seen := visited[id]; seen {
-			return EventTreeNode{ID: id, IsRef: true, Children: nil}
+			return DescendantsTree{ID: id, IsRef: true, Children: nil}
 		}
 		visited[id] = struct{}{}
 
-		node := EventTreeNode{ID: id, Children: []EventTreeNode{}}
+		node := DescendantsTree{ID: id, Children: []DescendantsTree{}}
 
 		for childID := range s.children[id] {
 			node.Children = append(node.Children, build(childID))
@@ -157,23 +157,23 @@ func (s *Store) DescendantsTree(rootID uint64) (EventTreeNode, bool) {
 	return build(rootID), true
 }
 
-func (s *Store) DescendantsTreeView(rootID uint64) (EventTreeViewNode, bool) {
+func (s *Store) DescendantsTreeView(rootID uint64) (DescendantsTreeView, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	rootEv, ok := s.events[rootID]
 	if !ok {
-		return EventTreeViewNode{}, false
+		return DescendantsTreeView{}, false
 	}
 
 	visited := make(map[uint64]struct{})
 
-	var build func(id uint64) EventTreeViewNode
-	build = func(id uint64) EventTreeViewNode {
+	var build func(id uint64) DescendantsTreeView
+	build = func(id uint64) DescendantsTreeView {
 		if _, seen := visited[id]; seen {
 			// ref 节点也带上 meta
 			ev := s.events[id]
-			return EventTreeViewNode{
+			return DescendantsTreeView{
 				ID:           id,
 				Type:         ev.Type,
 				TimeUnixNano: ev.TimeUnixNano,
@@ -183,15 +183,95 @@ func (s *Store) DescendantsTreeView(rootID uint64) (EventTreeViewNode, bool) {
 		visited[id] = struct{}{}
 
 		ev := s.events[id]
-		node := EventTreeViewNode{
+		node := DescendantsTreeView{
 			ID:           id,
 			Type:         ev.Type,
 			TimeUnixNano: ev.TimeUnixNano,
-			Children:     []EventTreeViewNode{},
+			Children:     []DescendantsTreeView{},
 		}
 
 		for childID := range s.children[id] {
 			node.Children = append(node.Children, build(childID))
+		}
+		return node
+	}
+
+	_ = rootEv
+	return build(rootID), true
+}
+
+func (s *Store) ProvenanceTree(rootID uint64) (ProvenanceTree, bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if _, ok := s.events[rootID]; !ok {
+		return ProvenanceTree{}, false
+	}
+
+	visited := make(map[uint64]struct{})
+
+	var build func(id uint64) ProvenanceTree
+	build = func(id uint64) ProvenanceTree {
+		// 如果已经见过，返回 ref 节点（不再继续展开）
+		if _, seen := visited[id]; seen {
+			return ProvenanceTree{ID: id, IsRef: true, Parents: nil}
+		}
+		visited[id] = struct{}{}
+
+		node := ProvenanceTree{ID: id, Parents: []ProvenanceTree{}}
+
+		ev := s.events[id]
+		for _, pid := range ev.Parents {
+			// Emit 已保证 parent 存在；这里防御一下异常数据
+			if _, ok := s.events[pid]; !ok {
+				continue
+			}
+			node.Parents = append(node.Parents, build(pid))
+		}
+		return node
+	}
+
+	return build(rootID), true
+}
+
+func (s *Store) ProvenanceTreeView(rootID uint64) (ProvenanceTreeView, bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	rootEv, ok := s.events[rootID]
+	if !ok {
+		return ProvenanceTreeView{}, false
+	}
+
+	visited := make(map[uint64]struct{})
+
+	var build func(id uint64) ProvenanceTreeView
+	build = func(id uint64) ProvenanceTreeView {
+		if _, seen := visited[id]; seen {
+			// ref 节点也带上 meta
+			ev := s.events[id]
+			return ProvenanceTreeView{
+				ID:           id,
+				Type:         ev.Type,
+				TimeUnixNano: ev.TimeUnixNano,
+				IsRef:        true,
+			}
+		}
+		visited[id] = struct{}{}
+
+		ev := s.events[id]
+		node := ProvenanceTreeView{
+			ID:           id,
+			Type:         ev.Type,
+			TimeUnixNano: ev.TimeUnixNano,
+			Parents:      []ProvenanceTreeView{},
+		}
+
+		for _, pid := range ev.Parents {
+			if _, ok := s.events[pid]; !ok {
+				continue
+			}
+			node.Parents = append(node.Parents, build(pid))
 		}
 		return node
 	}
