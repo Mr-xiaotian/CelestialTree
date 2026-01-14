@@ -22,7 +22,7 @@ type EventTreeViewNode struct {
 	ID           uint64              `json:"id"`
 	TimeUnixNano int64               `json:"time_unix_nano"`
 	Type         string              `json:"type"`
-	IsRef        bool                `json:"is_ref,omitempty"`
+	IsRef        bool                `json:"is_ref"`
 	Children     []EventTreeViewNode `json:"children"`
 }
 
@@ -37,4 +37,10 @@ type EmitRequest struct {
 // EmitResponse 是 /emit 返回的响应体。
 type EmitResponse struct {
 	ID uint64 `json:"id"`
+}
+
+// ResponseError 是错误响应的响应体。
+type ResponseError struct {
+	Error  string `json:"error"`
+	Detail string `json:"detail,omitempty"`
 }

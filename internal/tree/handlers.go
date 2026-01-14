@@ -24,19 +24,19 @@ func RegisterRoutes(mux *http.ServeMux, store *Store) {
 func handleEmit(store *Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
-			writeJSON(w, 405, map[string]any{"error": "method not allowed"})
+			writeJSON(w, 405, ResponseError{Error: "method not allowed"})
 			return
 		}
 
 		var req EmitRequest
 		if err := readJSON(r, &req); err != nil {
-			writeJSON(w, 400, map[string]any{"error": "invalid json", "detail": err.Error()})
+			writeJSON(w, 400, ResponseError{Error: "invalid json", Detail: err.Error()})
 			return
 		}
 
 		ev, err := store.Emit(req)
 		if err != nil {
-			writeJSON(w, 400, map[string]any{"error": err.Error()})
+			writeJSON(w, 400, ResponseError{Error: "emit failed", Detail: err.Error()})
 			return
 		}
 
@@ -47,20 +47,20 @@ func handleEmit(store *Store) http.HandlerFunc {
 func handleGetEvent(store *Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
-			writeJSON(w, 405, map[string]any{"error": "method not allowed"})
+			writeJSON(w, 405, ResponseError{Error: "method not allowed"})
 			return
 		}
 
 		idStr := strings.TrimPrefix(r.URL.Path, "/event/")
 		id, err := strconv.ParseUint(idStr, 10, 64)
 		if err != nil || id == 0 {
-			writeJSON(w, 400, map[string]any{"error": "bad id"})
+			writeJSON(w, 400, ResponseError{Error: "bad id"})
 			return
 		}
 
 		ev, ok := store.Get(id)
 		if !ok {
-			writeJSON(w, 404, map[string]any{"error": "not found"})
+			writeJSON(w, 404, ResponseError{Error: "not found"})
 			return
 		}
 		writeJSON(w, 200, ev)
@@ -70,20 +70,20 @@ func handleGetEvent(store *Store) http.HandlerFunc {
 func handleChildren(store *Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
-			writeJSON(w, 405, map[string]any{"error": "method not allowed"})
+			writeJSON(w, 405, ResponseError{Error: "method not allowed"})
 			return
 		}
 
 		idStr := strings.TrimPrefix(r.URL.Path, "/children/")
 		id, err := strconv.ParseUint(idStr, 10, 64)
 		if err != nil || id == 0 {
-			writeJSON(w, 400, map[string]any{"error": "bad id"})
+			writeJSON(w, 400, ResponseError{Error: "bad id"})
 			return
 		}
 
 		children, ok := store.Children(id)
 		if !ok {
-			writeJSON(w, 404, map[string]any{"error": "not found"})
+			writeJSON(w, 404, ResponseError{Error: "not found"})
 			return
 		}
 		writeJSON(w, 200, children)
@@ -93,14 +93,14 @@ func handleChildren(store *Store) http.HandlerFunc {
 func handleDescendants(store *Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
-			writeJSON(w, 405, map[string]any{"error": "method not allowed"})
+			writeJSON(w, 405, ResponseError{Error: "method not allowed"})
 			return
 		}
 
 		idStr := strings.TrimPrefix(r.URL.Path, "/descendants/")
 		id, err := strconv.ParseUint(idStr, 10, 64)
 		if err != nil || id == 0 {
-			writeJSON(w, 400, map[string]any{"error": "bad id"})
+			writeJSON(w, 400, ResponseError{Error: "bad id"})
 			return
 		}
 
@@ -109,7 +109,7 @@ func handleDescendants(store *Store) http.HandlerFunc {
 		case "", "struct":
 			tree, ok := store.DescendantsTree(id)
 			if !ok {
-				writeJSON(w, 404, map[string]any{"error": "not found"})
+				writeJSON(w, 404, ResponseError{Error: "not found"})
 				return
 			}
 			writeJSON(w, 200, tree)
@@ -118,14 +118,14 @@ func handleDescendants(store *Store) http.HandlerFunc {
 		case "meta":
 			tree, ok := store.DescendantsTreeView(id)
 			if !ok {
-				writeJSON(w, 404, map[string]any{"error": "not found"})
+				writeJSON(w, 404, ResponseError{Error: "not found"})
 				return
 			}
 			writeJSON(w, 200, tree)
 			return
 
 		default:
-			writeJSON(w, 400, map[string]any{"error": "bad view", "allowed": []string{"struct", "meta"}})
+			writeJSON(w, 400, ResponseError{Error: "bad view", Detail: fmt.Sprintf("unknown view: %s", view)})
 			return
 		}
 	}
@@ -134,19 +134,19 @@ func handleDescendants(store *Store) http.HandlerFunc {
 func handleAncestors(store *Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
-			writeJSON(w, 405, map[string]any{"error": "method not allowed"})
+			writeJSON(w, 405, ResponseError{Error: "method not allowed"})
 			return
 		}
 
 		idStr := strings.TrimPrefix(r.URL.Path, "/ancestors/")
 		id, err := strconv.ParseUint(idStr, 10, 64)
 		if err != nil || id == 0 {
-			writeJSON(w, 400, map[string]any{"error": "bad id"})
+			writeJSON(w, 400, ResponseError{Error: "bad id"})
 		}
 
 		ancestors, ok := store.Ancestors(id)
 		if !ok {
-			writeJSON(w, 404, map[string]any{"error": "not found"})
+			writeJSON(w, 404, ResponseError{Error: "not found"})
 			return
 		}
 
@@ -157,7 +157,7 @@ func handleAncestors(store *Store) http.HandlerFunc {
 func handleHeads(store *Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
-			writeJSON(w, 405, map[string]any{"error": "method not allowed"})
+			writeJSON(w, 405, ResponseError{Error: "method not allowed"})
 			return
 		}
 		writeJSON(w, 200, store.Heads())
@@ -175,13 +175,13 @@ func handleHealthz() http.HandlerFunc {
 func handleSubscribe(store *Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
-			writeJSON(w, 405, map[string]any{"error": "method not allowed"})
+			writeJSON(w, 405, ResponseError{Error: "method not allowed"})
 			return
 		}
 
 		flusher, ok := w.(http.Flusher)
 		if !ok {
-			writeJSON(w, 500, map[string]any{"error": "streaming not supported"})
+			writeJSON(w, 500, ResponseError{Error: "streaming not supported"})
 			return
 		}
 
