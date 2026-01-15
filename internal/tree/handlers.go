@@ -165,17 +165,17 @@ func handleDescendants(store *Store) http.HandlerFunc {
 func handleDescendantsBatch(store *Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
-			writeJSON(w, 405, map[string]any{"error": "method not allowed"})
+			writeJSON(w, 405, ResponseError{Error: "method not allowed"})
 			return
 		}
 
 		var req TreeBatchRequest
 		if err := readJSON(r, &req); err != nil {
-			writeJSON(w, 400, map[string]any{"error": "invalid json", "detail": err.Error()})
+			writeJSON(w, 400, ResponseError{Error: "invalid json", Detail: err.Error()})
 			return
 		}
 		if len(req.IDs) == 0 {
-			writeJSON(w, 400, map[string]any{"error": "ids is required"})
+			writeJSON(w, 400, ResponseError{Error: "ids is required"})
 			return
 		}
 
@@ -184,7 +184,7 @@ func handleDescendantsBatch(store *Store) http.HandlerFunc {
 		case "", "struct":
 			forest, ok := store.DescendantsForest(req.IDs)
 			if !ok {
-				writeJSON(w, 404, map[string]any{"error": "not found"})
+				writeJSON(w, 404, ResponseError{Error: "not found"})
 				return
 			}
 			writeJSON(w, 200, forest)
@@ -193,14 +193,14 @@ func handleDescendantsBatch(store *Store) http.HandlerFunc {
 		case "meta":
 			forest, ok := store.DescendantsForestView(req.IDs)
 			if !ok {
-				writeJSON(w, 404, map[string]any{"error": "not found"})
+				writeJSON(w, 404, ResponseError{Error: "not found"})
 				return
 			}
 			writeJSON(w, 200, forest)
 			return
 
 		default:
-			writeJSON(w, 400, map[string]any{"error": "bad view", "allowed": []string{"struct", "meta"}})
+			writeJSON(w, 400, ResponseError{Error: "bad view", Detail: fmt.Sprintf("unknown view: %s", view)})
 			return
 		}
 	}
@@ -250,17 +250,17 @@ func handleProvenance(store *Store) http.HandlerFunc {
 func handleProvenanceBatch(store *Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
-			writeJSON(w, 405, map[string]any{"error": "method not allowed"})
+			writeJSON(w, 405, ResponseError{Error: "method not allowed"})
 			return
 		}
 
 		var req TreeBatchRequest
 		if err := readJSON(r, &req); err != nil {
-			writeJSON(w, 400, map[string]any{"error": "invalid json", "detail": err.Error()})
+			writeJSON(w, 400, ResponseError{Error: "invalid json", Detail: err.Error()})
 			return
 		}
 		if len(req.IDs) == 0 {
-			writeJSON(w, 400, map[string]any{"error": "ids is required"})
+			writeJSON(w, 400, ResponseError{Error: "ids is required"})
 			return
 		}
 
@@ -269,7 +269,7 @@ func handleProvenanceBatch(store *Store) http.HandlerFunc {
 		case "", "struct":
 			forest, ok := store.ProvenanceForest(req.IDs)
 			if !ok {
-				writeJSON(w, 404, map[string]any{"error": "not found"})
+				writeJSON(w, 404, ResponseError{Error: "not found"})
 				return
 			}
 			writeJSON(w, 200, forest)
@@ -278,14 +278,14 @@ func handleProvenanceBatch(store *Store) http.HandlerFunc {
 		case "meta":
 			forest, ok := store.ProvenanceForestView(req.IDs)
 			if !ok {
-				writeJSON(w, 404, map[string]any{"error": "not found"})
+				writeJSON(w, 404, ResponseError{Error: "not found"})
 				return
 			}
 			writeJSON(w, 200, forest)
 			return
 
 		default:
-			writeJSON(w, 400, map[string]any{"error": "bad view", "allowed": []string{"struct", "meta"}})
+			writeJSON(w, 400, ResponseError{Error: "bad view", Detail: fmt.Sprintf("unknown view: %s", view)})
 			return
 		}
 	}
