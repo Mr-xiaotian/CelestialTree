@@ -13,9 +13,16 @@ func RegisterRoutes(mux *http.ServeMux, store *Store) {
 	mux.HandleFunc("/emit", handleEmit(store))
 	mux.HandleFunc("/event/", handleGetEvent(store))
 	mux.HandleFunc("/children/", handleChildren(store))
-	mux.HandleFunc("/descendants/", handleDescendants(store))
 	mux.HandleFunc("/ancestors/", handleAncestors(store))
+
+	// descendants: GET /descendants/{id}  &  POST /descendants {ids:[...]}
+	mux.HandleFunc("/descendants/", handleDescendants(store))
+	mux.HandleFunc("/descendants", handleDescendantsBatch(store))
+
+	// provenance:  GET /provenance/{id}   &  POST /provenance  {ids:[...]}
 	mux.HandleFunc("/provenance/", handleProvenance(store))
+	mux.HandleFunc("/provenance", handleProvenanceBatch(store))
+
 	mux.HandleFunc("/heads", handleHeads(store))
 	mux.HandleFunc("/subscribe", handleSubscribe(store))
 	mux.HandleFunc("/healthz", handleHealthz())
@@ -91,6 +98,29 @@ func handleChildren(store *Store) http.HandlerFunc {
 	}
 }
 
+func handleAncestors(store *Store) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			writeJSON(w, 405, ResponseError{Error: "method not allowed"})
+			return
+		}
+
+		idStr := strings.TrimPrefix(r.URL.Path, "/ancestors/")
+		id, err := strconv.ParseUint(idStr, 10, 64)
+		if err != nil || id == 0 {
+			writeJSON(w, 400, ResponseError{Error: "bad id"})
+		}
+
+		ancestors, ok := store.Ancestors(id)
+		if !ok {
+			writeJSON(w, 404, ResponseError{Error: "not found"})
+			return
+		}
+
+		writeJSON(w, 200, ancestors)
+	}
+}
+
 func handleDescendants(store *Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
@@ -132,26 +162,47 @@ func handleDescendants(store *Store) http.HandlerFunc {
 	}
 }
 
-func handleAncestors(store *Store) http.HandlerFunc {
+func handleDescendantsBatch(store *Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet {
-			writeJSON(w, 405, ResponseError{Error: "method not allowed"})
+		if r.Method != http.MethodPost {
+			writeJSON(w, 405, map[string]any{"error": "method not allowed"})
 			return
 		}
 
-		idStr := strings.TrimPrefix(r.URL.Path, "/ancestors/")
-		id, err := strconv.ParseUint(idStr, 10, 64)
-		if err != nil || id == 0 {
-			writeJSON(w, 400, ResponseError{Error: "bad id"})
+		var req TreeBatchRequest
+		if err := readJSON(r, &req); err != nil {
+			writeJSON(w, 400, map[string]any{"error": "invalid json", "detail": err.Error()})
+			return
 		}
-
-		ancestors, ok := store.Ancestors(id)
-		if !ok {
-			writeJSON(w, 404, ResponseError{Error: "not found"})
+		if len(req.IDs) == 0 {
+			writeJSON(w, 400, map[string]any{"error": "ids is required"})
 			return
 		}
 
-		writeJSON(w, 200, ancestors)
+		view := strings.ToLower(strings.TrimSpace(req.View))
+		switch view {
+		case "", "struct":
+			forest, ok := store.DescendantsForest(req.IDs)
+			if !ok {
+				writeJSON(w, 404, map[string]any{"error": "not found"})
+				return
+			}
+			writeJSON(w, 200, forest)
+			return
+
+		case "meta":
+			forest, ok := store.DescendantsForestView(req.IDs)
+			if !ok {
+				writeJSON(w, 404, map[string]any{"error": "not found"})
+				return
+			}
+			writeJSON(w, 200, forest)
+			return
+
+		default:
+			writeJSON(w, 400, map[string]any{"error": "bad view", "allowed": []string{"struct", "meta"}})
+			return
+		}
 	}
 }
 
@@ -191,6 +242,50 @@ func handleProvenance(store *Store) http.HandlerFunc {
 
 		default:
 			writeJSON(w, 400, ResponseError{Error: "bad view", Detail: fmt.Sprintf("unknown view: %s", view)})
+			return
+		}
+	}
+}
+
+func handleProvenanceBatch(store *Store) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			writeJSON(w, 405, map[string]any{"error": "method not allowed"})
+			return
+		}
+
+		var req TreeBatchRequest
+		if err := readJSON(r, &req); err != nil {
+			writeJSON(w, 400, map[string]any{"error": "invalid json", "detail": err.Error()})
+			return
+		}
+		if len(req.IDs) == 0 {
+			writeJSON(w, 400, map[string]any{"error": "ids is required"})
+			return
+		}
+
+		view := strings.ToLower(strings.TrimSpace(req.View))
+		switch view {
+		case "", "struct":
+			forest, ok := store.ProvenanceForest(req.IDs)
+			if !ok {
+				writeJSON(w, 404, map[string]any{"error": "not found"})
+				return
+			}
+			writeJSON(w, 200, forest)
+			return
+
+		case "meta":
+			forest, ok := store.ProvenanceForestView(req.IDs)
+			if !ok {
+				writeJSON(w, 404, map[string]any{"error": "not found"})
+				return
+			}
+			writeJSON(w, 200, forest)
+			return
+
+		default:
+			writeJSON(w, 400, map[string]any{"error": "bad view", "allowed": []string{"struct", "meta"}})
 			return
 		}
 	}

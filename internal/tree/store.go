@@ -128,6 +128,60 @@ func (s *Store) Children(id uint64) ([]uint64, bool) {
 	return out, true
 }
 
+func (s *Store) Ancestors(id uint64) ([]uint64, bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if _, ok := s.events[id]; !ok {
+		return nil, false
+	}
+
+	visited := make(map[uint64]struct{}, 64)
+	roots := make(map[uint64]struct{}, 8)
+
+	var dfs func(uint64) bool
+	dfs = func(cur uint64) bool {
+		if _, seen := visited[cur]; seen {
+			return true
+		}
+		visited[cur] = struct{}{}
+
+		ev, ok := s.events[cur]
+		if !ok {
+			return false
+		}
+
+		// root：没有 parents
+		if len(ev.Parents) == 0 {
+			roots[cur] = struct{}{}
+			return true
+		}
+
+		for _, p := range ev.Parents {
+			if _, ok := s.events[p]; !ok {
+				return false
+			}
+			if !dfs(p) {
+				return false
+			}
+		}
+		return true
+	}
+
+	if !dfs(id) {
+		return nil, false
+	}
+
+	out := make([]uint64, 0, len(roots))
+	for rid := range roots {
+		out = append(out, rid)
+	}
+
+	sort.Slice(out, func(i, j int) bool { return out[i] < out[j] })
+
+	return out, true
+}
+
 func (s *Store) DescendantsTree(rootID uint64) (DescendantsTree, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -198,6 +252,80 @@ func (s *Store) DescendantsTreeView(rootID uint64) (DescendantsTreeView, bool) {
 
 	_ = rootEv
 	return build(rootID), true
+}
+
+// DescendantsForest 批量返回多个 root 的后代树（struct view）。
+func (s *Store) DescendantsForest(rootIDs []uint64) ([]DescendantsTree, bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	for _, id := range rootIDs {
+		if id == 0 {
+			return nil, false
+		}
+		if _, ok := s.events[id]; !ok {
+			return nil, false
+		}
+	}
+
+	var build func(id uint64, visited map[uint64]struct{}) DescendantsTree
+	build = func(id uint64, visited map[uint64]struct{}) DescendantsTree {
+		if _, seen := visited[id]; seen {
+			return DescendantsTree{ID: id, IsRef: true, Children: nil}
+		}
+		visited[id] = struct{}{}
+
+		node := DescendantsTree{ID: id, Children: []DescendantsTree{}}
+		for childID := range s.children[id] {
+			node.Children = append(node.Children, build(childID, visited))
+		}
+		return node
+	}
+
+	out := make([]DescendantsTree, 0, len(rootIDs))
+	for _, id := range rootIDs {
+		visited := make(map[uint64]struct{})
+		out = append(out, build(id, visited))
+	}
+	return out, true
+}
+
+// DescendantsForestView 批量返回多个 root 的后代树（meta view）。
+func (s *Store) DescendantsForestView(rootIDs []uint64) ([]DescendantsTreeView, bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	for _, id := range rootIDs {
+		if id == 0 {
+			return nil, false
+		}
+		if _, ok := s.events[id]; !ok {
+			return nil, false
+		}
+	}
+
+	var build func(id uint64, visited map[uint64]struct{}) DescendantsTreeView
+	build = func(id uint64, visited map[uint64]struct{}) DescendantsTreeView {
+		if _, seen := visited[id]; seen {
+			ev := s.events[id]
+			return DescendantsTreeView{ID: id, Type: ev.Type, TimeUnixNano: ev.TimeUnixNano, IsRef: true}
+		}
+		visited[id] = struct{}{}
+
+		ev := s.events[id]
+		node := DescendantsTreeView{ID: id, Type: ev.Type, TimeUnixNano: ev.TimeUnixNano, Children: []DescendantsTreeView{}}
+		for childID := range s.children[id] {
+			node.Children = append(node.Children, build(childID, visited))
+		}
+		return node
+	}
+
+	out := make([]DescendantsTreeView, 0, len(rootIDs))
+	for _, id := range rootIDs {
+		visited := make(map[uint64]struct{})
+		out = append(out, build(id, visited))
+	}
+	return out, true
 }
 
 func (s *Store) ProvenanceTree(rootID uint64) (ProvenanceTree, bool) {
@@ -280,57 +408,84 @@ func (s *Store) ProvenanceTreeView(rootID uint64) (ProvenanceTreeView, bool) {
 	return build(rootID), true
 }
 
-func (s *Store) Ancestors(id uint64) ([]uint64, bool) {
+// ProvenanceForest 批量返回多个 root 的诞生树（struct view）。
+func (s *Store) ProvenanceForest(rootIDs []uint64) ([]ProvenanceTree, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if _, ok := s.events[id]; !ok {
-		return nil, false
+	for _, id := range rootIDs {
+		if id == 0 {
+			return nil, false
+		}
+		if _, ok := s.events[id]; !ok {
+			return nil, false
+		}
 	}
 
-	visited := make(map[uint64]struct{}, 64)
-	roots := make(map[uint64]struct{}, 8)
-
-	var dfs func(uint64) bool
-	dfs = func(cur uint64) bool {
-		if _, seen := visited[cur]; seen {
-			return true
+	var build func(id uint64, visited map[uint64]struct{}) ProvenanceTree
+	build = func(id uint64, visited map[uint64]struct{}) ProvenanceTree {
+		if _, seen := visited[id]; seen {
+			return ProvenanceTree{ID: id, IsRef: true, Parents: nil}
 		}
-		visited[cur] = struct{}{}
+		visited[id] = struct{}{}
 
-		ev, ok := s.events[cur]
-		if !ok {
-			return false
-		}
-
-		// root：没有 parents
-		if len(ev.Parents) == 0 {
-			roots[cur] = struct{}{}
-			return true
-		}
-
-		for _, p := range ev.Parents {
-			if _, ok := s.events[p]; !ok {
-				return false
+		node := ProvenanceTree{ID: id, Parents: []ProvenanceTree{}}
+		ev := s.events[id]
+		for _, pid := range ev.Parents {
+			if _, ok := s.events[pid]; !ok {
+				continue
 			}
-			if !dfs(p) {
-				return false
-			}
+			node.Parents = append(node.Parents, build(pid, visited))
 		}
-		return true
+		return node
 	}
 
-	if !dfs(id) {
-		return nil, false
+	out := make([]ProvenanceTree, 0, len(rootIDs))
+	for _, id := range rootIDs {
+		visited := make(map[uint64]struct{})
+		out = append(out, build(id, visited))
+	}
+	return out, true
+}
+
+// ProvenanceForestView 批量返回多个 root 的诞生树（meta view）。
+func (s *Store) ProvenanceForestView(rootIDs []uint64) ([]ProvenanceTreeView, bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	for _, id := range rootIDs {
+		if id == 0 {
+			return nil, false
+		}
+		if _, ok := s.events[id]; !ok {
+			return nil, false
+		}
 	}
 
-	out := make([]uint64, 0, len(roots))
-	for rid := range roots {
-		out = append(out, rid)
+	var build func(id uint64, visited map[uint64]struct{}) ProvenanceTreeView
+	build = func(id uint64, visited map[uint64]struct{}) ProvenanceTreeView {
+		if _, seen := visited[id]; seen {
+			ev := s.events[id]
+			return ProvenanceTreeView{ID: id, Type: ev.Type, TimeUnixNano: ev.TimeUnixNano, IsRef: true}
+		}
+		visited[id] = struct{}{}
+
+		ev := s.events[id]
+		node := ProvenanceTreeView{ID: id, Type: ev.Type, TimeUnixNano: ev.TimeUnixNano, Parents: []ProvenanceTreeView{}}
+		for _, pid := range ev.Parents {
+			if _, ok := s.events[pid]; !ok {
+				continue
+			}
+			node.Parents = append(node.Parents, build(pid, visited))
+		}
+		return node
 	}
 
-	sort.Slice(out, func(i, j int) bool { return out[i] < out[j] })
-
+	out := make([]ProvenanceTreeView, 0, len(rootIDs))
+	for _, id := range rootIDs {
+		visited := make(map[uint64]struct{})
+		out = append(out, build(id, visited))
+	}
 	return out, true
 }
 
