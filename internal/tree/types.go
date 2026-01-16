@@ -1,13 +1,15 @@
 package tree
 
+import "encoding/json"
+
 // Event 是 CelestialTree 的“最小历史原子”。
 type Event struct {
-	ID           uint64   `json:"id"`
-	TimeUnixNano int64    `json:"time_unix_nano"`
-	Type         string   `json:"type"`
-	Parents      []uint64 `json:"parents"`
-	Message      string   `json:"message,omitempty"`
-	Payload      []byte   `json:"payload,omitempty"`
+	ID           uint64          `json:"id"`
+	TimeUnixNano int64           `json:"time_unix_nano"`
+	Type         string          `json:"type"`
+	Parents      []uint64        `json:"parents"`
+	Message      string          `json:"message,omitempty"`
+	Payload      json.RawMessage `json:"payload,omitempty"`
 }
 
 // ===============================
@@ -16,10 +18,10 @@ type Event struct {
 
 // EmitRequest 是客户端发来的“写入事件”的请求体。
 type EmitRequest struct {
-	Type    string   `json:"type"`
-	Parents []uint64 `json:"parents"`
-	Message string   `json:"message,omitempty"`
-	Payload []byte   `json:"payload,omitempty"`
+	Type    string          `json:"type"`
+	Parents []uint64        `json:"parents"`
+	Message string          `json:"message,omitempty"`
+	Payload json.RawMessage `json:"payload,omitempty"`
 }
 
 // TreeBatchRequest 用于批量查询 descendants/provenance。

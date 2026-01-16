@@ -24,9 +24,11 @@ func RegisterRoutes(mux *http.ServeMux, store *Store) {
 	mux.HandleFunc("/provenance", handleProvenanceBatch(store))
 
 	mux.HandleFunc("/heads", handleHeads(store))
-	mux.HandleFunc("/subscribe", handleSubscribe(store))
 	mux.HandleFunc("/healthz", handleHealthz())
 	mux.HandleFunc("/version", handleVersion())
+
+	// subscribe: GET /subscribe {id:...}
+	mux.HandleFunc("/subscribe", handleSubscribe(store))
 }
 
 func handleEmit(store *Store) http.HandlerFunc {
@@ -307,6 +309,17 @@ func handleHealthz() http.HandlerFunc {
 	}
 }
 
+func handleVersion() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, 200, map[string]any{
+			"name":    version.Name,
+			"version": version.Version,
+			"commit":  version.GitCommit,
+			"build":   version.BuildTime,
+		})
+	}
+}
+
 // 为了避免 handlers.go 过长，SSE 的 handler 放到 sse_handler.go 也行。
 // 这里先留在一个文件里。
 func handleSubscribe(store *Store) http.HandlerFunc {
@@ -347,16 +360,5 @@ func handleSubscribe(store *Store) http.HandlerFunc {
 				flusher.Flush()
 			}
 		}
-	}
-}
-
-func handleVersion() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		writeJSON(w, 200, map[string]any{
-			"name":    version.Name,
-			"version": version.Version,
-			"commit":  version.GitCommit,
-			"build":   version.BuildTime,
-		})
 	}
 }

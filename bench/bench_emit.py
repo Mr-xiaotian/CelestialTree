@@ -5,10 +5,10 @@ import argparse
 import base64
 import statistics
 import time
-import asyncio
 
 import requests, httpx
 from celestialflow import TaskManager
+from celestialtree import Client
 
 
 def now_ms() -> float:
@@ -16,6 +16,7 @@ def now_ms() -> float:
 
 session = requests.Session()
 client = httpx.AsyncClient(trust_env=False)
+ctree = Client(host="127.0.0.1", port=7777)
 
 # ===============================
 # 单个 Emit 任务的执行函数
@@ -140,7 +141,7 @@ def main():
         execution_mode="thread",
         worker_limit=args.c,
         unpack_task_args=True,
-        enable_result_cache=True,
+        enable_success_cache=True,
         enable_duplicate_check=False,
         show_progress=True,
         progress_desc="emit-bench",
@@ -173,7 +174,7 @@ async def main_async():
         execution_mode="async",
         worker_limit=args.c,
         unpack_task_args=True,
-        enable_result_cache=True,
+        enable_success_cache=True,
         enable_duplicate_check=False,
         show_progress=True,
         progress_desc="emit-bench",
