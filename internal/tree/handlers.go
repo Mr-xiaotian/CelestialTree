@@ -149,7 +149,7 @@ func handleDescendants(store *Store) http.HandlerFunc {
 			return
 
 		case "meta":
-			tree, ok := store.DescendantsTreeView(id)
+			tree, ok := store.DescendantsTreeMeta(id)
 			if !ok {
 				writeJSON(w, 404, ResponseError{Error: "not found"})
 				return
@@ -193,7 +193,7 @@ func handleDescendantsBatch(store *Store) http.HandlerFunc {
 			return
 
 		case "meta":
-			forest, ok := store.DescendantsForestView(req.IDs)
+			forest, ok := store.DescendantsForestMeta(req.IDs)
 			if !ok {
 				writeJSON(w, 404, ResponseError{Error: "not found"})
 				return
@@ -234,7 +234,7 @@ func handleProvenance(store *Store) http.HandlerFunc {
 			return
 
 		case "meta":
-			tree, ok := store.ProvenanceTreeView(id)
+			tree, ok := store.ProvenanceTreeMeta(id)
 			if !ok {
 				writeJSON(w, 404, ResponseError{Error: "not found"})
 				return
@@ -278,7 +278,7 @@ func handleProvenanceBatch(store *Store) http.HandlerFunc {
 			return
 
 		case "meta":
-			forest, ok := store.ProvenanceForestView(req.IDs)
+			forest, ok := store.ProvenanceForestMeta(req.IDs)
 			if !ok {
 				writeJSON(w, 404, ResponseError{Error: "not found"})
 				return

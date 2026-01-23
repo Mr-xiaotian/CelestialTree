@@ -7,9 +7,9 @@ type Event struct {
 	ID           uint64          `json:"id"`
 	TimeUnixNano int64           `json:"time_unix_nano"`
 	Type         string          `json:"type"`
-	Parents      []uint64        `json:"parents"`
 	Message      string          `json:"message,omitempty"`
 	Payload      json.RawMessage `json:"payload,omitempty"`
+	Parents      []uint64        `json:"parents"`
 }
 
 // ===============================
@@ -19,9 +19,9 @@ type Event struct {
 // EmitRequest 是客户端发来的“写入事件”的请求体。
 type EmitRequest struct {
 	Type    string          `json:"type"`
-	Parents []uint64        `json:"parents"`
 	Message string          `json:"message,omitempty"`
 	Payload json.RawMessage `json:"payload,omitempty"`
+	Parents []uint64        `json:"parents"`
 }
 
 // TreeBatchRequest 用于批量查询 descendants/provenance。
@@ -46,13 +46,15 @@ type DescendantsTree struct {
 	Children []DescendantsTree `json:"children"`
 }
 
-// DescendantsTreeView 用于表示某个事件及其所有后代（树形结构），并且包含时间戳
-type DescendantsTreeView struct {
+// DescendantsTreeMeta 用于表示某个事件及其所有后代（树形结构），并且包含时间戳
+type DescendantsTreeMeta struct {
 	ID           uint64                `json:"id"`
 	TimeUnixNano int64                 `json:"time_unix_nano"`
 	Type         string                `json:"type"`
 	IsRef        bool                  `json:"is_ref"`
-	Children     []DescendantsTreeView `json:"children"`
+	Message      string                `json:"message,omitempty"`
+	Payload      json.RawMessage       `json:"payload,omitempty"`
+	Children     []DescendantsTreeMeta `json:"children"`
 }
 
 // ProvenanceTree 用于表示某个事件及其所有祖先（树形结构，向上追溯）
@@ -62,13 +64,15 @@ type ProvenanceTree struct {
 	Parents []ProvenanceTree `json:"parents"`
 }
 
-// ProvenanceTreeView 用于表示某个事件及其所有祖先（树形结构），并且包含时间戳和类型
-type ProvenanceTreeView struct {
+// ProvenanceTreeMeta 用于表示某个事件及其所有祖先（树形结构），并且包含时间戳和类型
+type ProvenanceTreeMeta struct {
 	ID           uint64               `json:"id"`
 	TimeUnixNano int64                `json:"time_unix_nano"`
 	Type         string               `json:"type"`
 	IsRef        bool                 `json:"is_ref"`
-	Parents      []ProvenanceTreeView `json:"parents"`
+	Message      string               `json:"message,omitempty"`
+	Payload      json.RawMessage      `json:"payload,omitempty"`
+	Parents      []ProvenanceTreeMeta `json:"parents"`
 }
 
 // ResponseError 是错误响应的响应体。

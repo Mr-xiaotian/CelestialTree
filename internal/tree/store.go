@@ -64,9 +64,9 @@ func (s *Store) Emit(req EmitRequest) (Event, error) {
 		ID:           id,
 		TimeUnixNano: now,
 		Type:         req.Type,
-		Parents:      parents,
 		Message:      req.Message,
 		Payload:      req.Payload,
+		Parents:      parents,
 	}
 
 	s.mu.Lock()
@@ -211,37 +211,41 @@ func (s *Store) DescendantsTree(rootID uint64) (DescendantsTree, bool) {
 	return build(rootID), true
 }
 
-func (s *Store) DescendantsTreeView(rootID uint64) (DescendantsTreeView, bool) {
+func (s *Store) DescendantsTreeMeta(rootID uint64) (DescendantsTreeMeta, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	rootEv, ok := s.events[rootID]
 	if !ok {
-		return DescendantsTreeView{}, false
+		return DescendantsTreeMeta{}, false
 	}
 
 	visited := make(map[uint64]struct{})
 
-	var build func(id uint64) DescendantsTreeView
-	build = func(id uint64) DescendantsTreeView {
+	var build func(id uint64) DescendantsTreeMeta
+	build = func(id uint64) DescendantsTreeMeta {
 		if _, seen := visited[id]; seen {
 			// ref 节点也带上 meta
 			ev := s.events[id]
-			return DescendantsTreeView{
+			return DescendantsTreeMeta{
 				ID:           id,
-				Type:         ev.Type,
 				TimeUnixNano: ev.TimeUnixNano,
+				Type:         ev.Type,
+				Message:      ev.Message,
+				Payload:      ev.Payload,
 				IsRef:        true,
 			}
 		}
 		visited[id] = struct{}{}
 
 		ev := s.events[id]
-		node := DescendantsTreeView{
+		node := DescendantsTreeMeta{
 			ID:           id,
-			Type:         ev.Type,
 			TimeUnixNano: ev.TimeUnixNano,
-			Children:     []DescendantsTreeView{},
+			Type:         ev.Type,
+			Message:      ev.Message,
+			Payload:      ev.Payload,
+			Children:     []DescendantsTreeMeta{},
 		}
 
 		for childID := range s.children[id] {
@@ -290,8 +294,8 @@ func (s *Store) DescendantsForest(rootIDs []uint64) ([]DescendantsTree, bool) {
 	return out, true
 }
 
-// DescendantsForestView 批量返回多个 root 的后代树（meta view）。
-func (s *Store) DescendantsForestView(rootIDs []uint64) ([]DescendantsTreeView, bool) {
+// DescendantsForestMeta 批量返回多个 root 的后代树（meta view）。
+func (s *Store) DescendantsForestMeta(rootIDs []uint64) ([]DescendantsTreeMeta, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -304,23 +308,23 @@ func (s *Store) DescendantsForestView(rootIDs []uint64) ([]DescendantsTreeView, 
 		}
 	}
 
-	var build func(id uint64, visited map[uint64]struct{}) DescendantsTreeView
-	build = func(id uint64, visited map[uint64]struct{}) DescendantsTreeView {
+	var build func(id uint64, visited map[uint64]struct{}) DescendantsTreeMeta
+	build = func(id uint64, visited map[uint64]struct{}) DescendantsTreeMeta {
 		if _, seen := visited[id]; seen {
 			ev := s.events[id]
-			return DescendantsTreeView{ID: id, Type: ev.Type, TimeUnixNano: ev.TimeUnixNano, IsRef: true}
+			return DescendantsTreeMeta{ID: id, Type: ev.Type, TimeUnixNano: ev.TimeUnixNano, IsRef: true}
 		}
 		visited[id] = struct{}{}
 
 		ev := s.events[id]
-		node := DescendantsTreeView{ID: id, Type: ev.Type, TimeUnixNano: ev.TimeUnixNano, Children: []DescendantsTreeView{}}
+		node := DescendantsTreeMeta{ID: id, Type: ev.Type, TimeUnixNano: ev.TimeUnixNano, Children: []DescendantsTreeMeta{}}
 		for childID := range s.children[id] {
 			node.Children = append(node.Children, build(childID, visited))
 		}
 		return node
 	}
 
-	out := make([]DescendantsTreeView, 0, len(rootIDs))
+	out := make([]DescendantsTreeMeta, 0, len(rootIDs))
 	for _, id := range rootIDs {
 		visited := make(map[uint64]struct{})
 		out = append(out, build(id, visited))
@@ -362,37 +366,41 @@ func (s *Store) ProvenanceTree(rootID uint64) (ProvenanceTree, bool) {
 	return build(rootID), true
 }
 
-func (s *Store) ProvenanceTreeView(rootID uint64) (ProvenanceTreeView, bool) {
+func (s *Store) ProvenanceTreeMeta(rootID uint64) (ProvenanceTreeMeta, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	rootEv, ok := s.events[rootID]
 	if !ok {
-		return ProvenanceTreeView{}, false
+		return ProvenanceTreeMeta{}, false
 	}
 
 	visited := make(map[uint64]struct{})
 
-	var build func(id uint64) ProvenanceTreeView
-	build = func(id uint64) ProvenanceTreeView {
+	var build func(id uint64) ProvenanceTreeMeta
+	build = func(id uint64) ProvenanceTreeMeta {
 		if _, seen := visited[id]; seen {
 			// ref 节点也带上 meta
 			ev := s.events[id]
-			return ProvenanceTreeView{
+			return ProvenanceTreeMeta{
 				ID:           id,
-				Type:         ev.Type,
 				TimeUnixNano: ev.TimeUnixNano,
+				Type:         ev.Type,
+				Message:      ev.Message,
+				Payload:      ev.Payload,
 				IsRef:        true,
 			}
 		}
 		visited[id] = struct{}{}
 
 		ev := s.events[id]
-		node := ProvenanceTreeView{
+		node := ProvenanceTreeMeta{
 			ID:           id,
-			Type:         ev.Type,
 			TimeUnixNano: ev.TimeUnixNano,
-			Parents:      []ProvenanceTreeView{},
+			Type:         ev.Type,
+			Message:      ev.Message,
+			Payload:      ev.Payload,
+			Parents:      []ProvenanceTreeMeta{},
 		}
 
 		for _, pid := range ev.Parents {
@@ -448,8 +456,8 @@ func (s *Store) ProvenanceForest(rootIDs []uint64) ([]ProvenanceTree, bool) {
 	return out, true
 }
 
-// ProvenanceForestView 批量返回多个 root 的诞生树（meta view）。
-func (s *Store) ProvenanceForestView(rootIDs []uint64) ([]ProvenanceTreeView, bool) {
+// ProvenanceForestMeta 批量返回多个 root 的诞生树（meta view）。
+func (s *Store) ProvenanceForestMeta(rootIDs []uint64) ([]ProvenanceTreeMeta, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -462,16 +470,16 @@ func (s *Store) ProvenanceForestView(rootIDs []uint64) ([]ProvenanceTreeView, bo
 		}
 	}
 
-	var build func(id uint64, visited map[uint64]struct{}) ProvenanceTreeView
-	build = func(id uint64, visited map[uint64]struct{}) ProvenanceTreeView {
+	var build func(id uint64, visited map[uint64]struct{}) ProvenanceTreeMeta
+	build = func(id uint64, visited map[uint64]struct{}) ProvenanceTreeMeta {
 		if _, seen := visited[id]; seen {
 			ev := s.events[id]
-			return ProvenanceTreeView{ID: id, Type: ev.Type, TimeUnixNano: ev.TimeUnixNano, IsRef: true}
+			return ProvenanceTreeMeta{ID: id, Type: ev.Type, TimeUnixNano: ev.TimeUnixNano, IsRef: true}
 		}
 		visited[id] = struct{}{}
 
 		ev := s.events[id]
-		node := ProvenanceTreeView{ID: id, Type: ev.Type, TimeUnixNano: ev.TimeUnixNano, Parents: []ProvenanceTreeView{}}
+		node := ProvenanceTreeMeta{ID: id, Type: ev.Type, TimeUnixNano: ev.TimeUnixNano, Parents: []ProvenanceTreeMeta{}}
 		for _, pid := range ev.Parents {
 			if _, ok := s.events[pid]; !ok {
 				continue
@@ -481,7 +489,7 @@ func (s *Store) ProvenanceForestView(rootIDs []uint64) ([]ProvenanceTreeView, bo
 		return node
 	}
 
-	out := make([]ProvenanceTreeView, 0, len(rootIDs))
+	out := make([]ProvenanceTreeMeta, 0, len(rootIDs))
 	for _, id := range rootIDs {
 		visited := make(map[uint64]struct{})
 		out = append(out, build(id, visited))
