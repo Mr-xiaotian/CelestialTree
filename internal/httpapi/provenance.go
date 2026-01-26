@@ -4,25 +4,19 @@ import (
 	"celestialtree/internal/tree"
 	"fmt"
 	"net/http"
-	"strconv"
-	"strings"
 )
 
 func handleProvenance(store *tree.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet {
-			writeJSON(w, 405, tree.ResponseError{Error: "method not allowed"})
+		if !requireMethod(w, r, http.MethodGet) {
+			return
+		}
+		id, ok := parsePathUint64(w, r.URL.Path, "/provenance/")
+		if !ok {
 			return
 		}
 
-		idStr := strings.TrimPrefix(r.URL.Path, "/provenance/")
-		id, err := strconv.ParseUint(idStr, 10, 64)
-		if err != nil || id == 0 {
-			writeJSON(w, 400, tree.ResponseError{Error: "bad id"})
-			return
-		}
-
-		view := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("view")))
+		view := normalizeView(r.URL.Query().Get("view"))
 		switch view {
 		case "", "struct":
 			pt, ok := store.ProvenanceTree(id)
@@ -51,8 +45,7 @@ func handleProvenance(store *tree.Store) http.HandlerFunc {
 
 func handleProvenanceBatch(store *tree.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			writeJSON(w, 405, tree.ResponseError{Error: "method not allowed"})
+		if !requireMethod(w, r, http.MethodPost) {
 			return
 		}
 
@@ -66,7 +59,7 @@ func handleProvenanceBatch(store *tree.Store) http.HandlerFunc {
 			return
 		}
 
-		view := strings.ToLower(strings.TrimSpace(req.View))
+		view := normalizeView(r.URL.Query().Get("view"))
 		switch view {
 		case "", "struct":
 			forest, ok := store.ProvenanceForest(req.IDs)

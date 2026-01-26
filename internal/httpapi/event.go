@@ -3,21 +3,15 @@ package httpapi
 import (
 	"celestialtree/internal/tree"
 	"net/http"
-	"strconv"
-	"strings"
 )
 
 func handleGetEvent(store *tree.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet {
-			writeJSON(w, 405, tree.ResponseError{Error: "method not allowed"})
+		if !requireMethod(w, r, http.MethodGet) {
 			return
 		}
-
-		idStr := strings.TrimPrefix(r.URL.Path, "/event/")
-		id, err := strconv.ParseUint(idStr, 10, 64)
-		if err != nil || id == 0 {
-			writeJSON(w, 400, tree.ResponseError{Error: "bad id"})
+		id, ok := parsePathUint64(w, r.URL.Path, "/event/")
+		if !ok {
 			return
 		}
 

@@ -7,8 +7,7 @@ import (
 
 func handleEmit(store *tree.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			writeJSON(w, 405, tree.ResponseError{Error: "method not allowed"})
+		if !requireMethod(w, r, http.MethodPost) {
 			return
 		}
 

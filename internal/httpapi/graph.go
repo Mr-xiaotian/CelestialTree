@@ -3,21 +3,15 @@ package httpapi
 import (
 	"celestialtree/internal/tree"
 	"net/http"
-	"strconv"
-	"strings"
 )
 
 func handleChildren(store *tree.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet {
-			writeJSON(w, 405, tree.ResponseError{Error: "method not allowed"})
+		if !requireMethod(w, r, http.MethodGet) {
 			return
 		}
-
-		idStr := strings.TrimPrefix(r.URL.Path, "/children/")
-		id, err := strconv.ParseUint(idStr, 10, 64)
-		if err != nil || id == 0 {
-			writeJSON(w, 400, tree.ResponseError{Error: "bad id"})
+		id, ok := parsePathUint64(w, r.URL.Path, "/children/")
+		if !ok {
 			return
 		}
 
@@ -32,15 +26,12 @@ func handleChildren(store *tree.Store) http.HandlerFunc {
 
 func handleAncestors(store *tree.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet {
-			writeJSON(w, 405, tree.ResponseError{Error: "method not allowed"})
+		if !requireMethod(w, r, http.MethodGet) {
 			return
 		}
-
-		idStr := strings.TrimPrefix(r.URL.Path, "/ancestors/")
-		id, err := strconv.ParseUint(idStr, 10, 64)
-		if err != nil || id == 0 {
-			writeJSON(w, 400, tree.ResponseError{Error: "bad id"})
+		id, ok := parsePathUint64(w, r.URL.Path, "/ancestors/")
+		if !ok {
+			return
 		}
 
 		ancestors, ok := store.Ancestors(id)
@@ -55,8 +46,7 @@ func handleAncestors(store *tree.Store) http.HandlerFunc {
 
 func handleHeads(store *tree.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet {
-			writeJSON(w, 405, tree.ResponseError{Error: "method not allowed"})
+		if !requireMethod(w, r, http.MethodGet) {
 			return
 		}
 		writeJSON(w, 200, store.Heads())

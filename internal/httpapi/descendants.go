@@ -4,7 +4,6 @@ import (
 	"celestialtree/internal/tree"
 	"fmt"
 	"net/http"
-	"strings"
 )
 
 func handleDescendants(store *tree.Store) http.HandlerFunc {
@@ -46,8 +45,7 @@ func handleDescendants(store *tree.Store) http.HandlerFunc {
 
 func handleDescendantsBatch(store *tree.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			writeJSON(w, 405, tree.ResponseError{Error: "method not allowed"})
+		if !requireMethod(w, r, http.MethodPost) {
 			return
 		}
 
@@ -61,7 +59,7 @@ func handleDescendantsBatch(store *tree.Store) http.HandlerFunc {
 			return
 		}
 
-		view := strings.ToLower(strings.TrimSpace(req.View))
+		view := normalizeView(r.URL.Query().Get("view"))
 		switch view {
 		case "", "struct":
 			forest, ok := store.DescendantsForest(req.IDs)
