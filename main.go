@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"celestialtree/internal/httpapi"
 	"celestialtree/internal/tree"
 	"celestialtree/internal/version"
 )
@@ -33,7 +34,7 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
-	tree.RegisterRoutes(mux, store)
+	httpapi.RegisterRoutes(mux, store)
 
 	srv := &http.Server{
 		Addr:              addr,
