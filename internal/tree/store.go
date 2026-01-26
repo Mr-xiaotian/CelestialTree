@@ -312,12 +312,27 @@ func (s *Store) DescendantsForestMeta(rootIDs []uint64) ([]DescendantsTreeMeta, 
 	build = func(id uint64, visited map[uint64]struct{}) DescendantsTreeMeta {
 		if _, seen := visited[id]; seen {
 			ev := s.events[id]
-			return DescendantsTreeMeta{ID: id, Type: ev.Type, TimeUnixNano: ev.TimeUnixNano, IsRef: true}
+			return DescendantsTreeMeta{
+				ID:           id,
+				TimeUnixNano: ev.TimeUnixNano,
+				Type:         ev.Type,
+				IsRef:        true,
+				Message:      ev.Message,
+				Payload:      ev.Payload,
+			}
 		}
 		visited[id] = struct{}{}
 
 		ev := s.events[id]
-		node := DescendantsTreeMeta{ID: id, Type: ev.Type, TimeUnixNano: ev.TimeUnixNano, Children: []DescendantsTreeMeta{}}
+		node := DescendantsTreeMeta{
+			ID:           id,
+			TimeUnixNano: ev.TimeUnixNano,
+			Type:         ev.Type,
+			IsRef:        false,
+			Message:      ev.Message,
+			Payload:      ev.Payload,
+			Children:     []DescendantsTreeMeta{},
+		}
 		for childID := range s.children[id] {
 			node.Children = append(node.Children, build(childID, visited))
 		}
@@ -474,12 +489,27 @@ func (s *Store) ProvenanceForestMeta(rootIDs []uint64) ([]ProvenanceTreeMeta, bo
 	build = func(id uint64, visited map[uint64]struct{}) ProvenanceTreeMeta {
 		if _, seen := visited[id]; seen {
 			ev := s.events[id]
-			return ProvenanceTreeMeta{ID: id, Type: ev.Type, TimeUnixNano: ev.TimeUnixNano, IsRef: true}
+			return ProvenanceTreeMeta{
+				ID:           id,
+				TimeUnixNano: ev.TimeUnixNano,
+				Type:         ev.Type,
+				IsRef:        true,
+				Message:      ev.Message,
+				Payload:      ev.Payload,
+			}
 		}
 		visited[id] = struct{}{}
 
 		ev := s.events[id]
-		node := ProvenanceTreeMeta{ID: id, Type: ev.Type, TimeUnixNano: ev.TimeUnixNano, Parents: []ProvenanceTreeMeta{}}
+		node := ProvenanceTreeMeta{
+			ID:           id,
+			TimeUnixNano: ev.TimeUnixNano,
+			Type:         ev.Type,
+			IsRef:        false,
+			Message:      ev.Message,
+			Payload:      ev.Payload,
+			Parents:      []ProvenanceTreeMeta{},
+		}
 		for _, pid := range ev.Parents {
 			if _, ok := s.events[pid]; !ok {
 				continue
