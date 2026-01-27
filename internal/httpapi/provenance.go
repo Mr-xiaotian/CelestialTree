@@ -59,7 +59,7 @@ func handleProvenanceBatch(store *tree.Store) http.HandlerFunc {
 			return
 		}
 
-		view := normalizeView(r.URL.Query().Get("view"))
+		view := normalizeView(req.View)
 		switch view {
 		case "", "struct":
 			forest, ok := store.ProvenanceForest(req.IDs)
