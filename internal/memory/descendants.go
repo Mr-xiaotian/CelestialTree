@@ -1,12 +1,14 @@
-package tree
+package memory
 
-func (s *Store) descendantsTreeLocked(rootID uint64, visited map[uint64]struct{}) DescendantsTree {
+import "celestialtree/internal/tree"
+
+func (s *Store) descendantsTreeLocked(rootID uint64, visited map[uint64]struct{}) tree.DescendantsTree {
 	if _, seen := visited[rootID]; seen {
-		return DescendantsTree{ID: rootID, IsRef: true, Children: nil}
+		return tree.DescendantsTree{ID: rootID, IsRef: true, Children: nil}
 	}
 	visited[rootID] = struct{}{}
 
-	node := DescendantsTree{ID: rootID, Children: []DescendantsTree{}}
+	node := tree.DescendantsTree{ID: rootID, Children: []tree.DescendantsTree{}}
 
 	childSet := s.children[rootID]
 	for _, childID := range sortedChildIDs(childSet) {
@@ -15,11 +17,11 @@ func (s *Store) descendantsTreeLocked(rootID uint64, visited map[uint64]struct{}
 	return node
 }
 
-func (s *Store) descendantsTreeMetaLocked(rootID uint64, visited map[uint64]struct{}) DescendantsTreeMeta {
+func (s *Store) descendantsTreeMetaLocked(rootID uint64, visited map[uint64]struct{}) tree.DescendantsTreeMeta {
 	ev := s.events[rootID]
 
 	if _, seen := visited[rootID]; seen {
-		return DescendantsTreeMeta{
+		return tree.DescendantsTreeMeta{
 			ID:           rootID,
 			TimeUnixNano: ev.TimeUnixNano,
 			Type:         ev.Type,
@@ -30,14 +32,14 @@ func (s *Store) descendantsTreeMetaLocked(rootID uint64, visited map[uint64]stru
 	}
 	visited[rootID] = struct{}{}
 
-	node := DescendantsTreeMeta{
+	node := tree.DescendantsTreeMeta{
 		ID:           rootID,
 		TimeUnixNano: ev.TimeUnixNano,
 		Type:         ev.Type,
 		Message:      ev.Message,
 		Payload:      ev.Payload,
 		IsRef:        false,
-		Children:     []DescendantsTreeMeta{},
+		Children:     []tree.DescendantsTreeMeta{},
 	}
 
 	childSet := s.children[rootID]
@@ -47,33 +49,33 @@ func (s *Store) descendantsTreeMetaLocked(rootID uint64, visited map[uint64]stru
 	return node
 }
 
-func (s *Store) DescendantsTree(rootID uint64) (DescendantsTree, error) {
+func (s *Store) DescendantsTree(rootID uint64) (tree.DescendantsTree, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	err := s.validateRootIDLocked(rootID)
 	if err != nil {
-		return DescendantsTree{}, err
+		return tree.DescendantsTree{}, err
 	}
 
 	visited := make(map[uint64]struct{})
 	return s.descendantsTreeLocked(rootID, visited), nil
 }
 
-func (s *Store) DescendantsTreeMeta(rootID uint64) (DescendantsTreeMeta, error) {
+func (s *Store) DescendantsTreeMeta(rootID uint64) (tree.DescendantsTreeMeta, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	err := s.validateRootIDLocked(rootID)
 	if err != nil {
-		return DescendantsTreeMeta{}, err
+		return tree.DescendantsTreeMeta{}, err
 	}
 
 	visited := make(map[uint64]struct{})
 	return s.descendantsTreeMetaLocked(rootID, visited), nil
 }
 
-func (s *Store) DescendantsForest(rootIDs []uint64) ([]DescendantsTree, error) {
+func (s *Store) DescendantsForest(rootIDs []uint64) ([]tree.DescendantsTree, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -82,7 +84,7 @@ func (s *Store) DescendantsForest(rootIDs []uint64) ([]DescendantsTree, error) {
 		return nil, err
 	}
 
-	out := make([]DescendantsTree, 0, len(rootIDs))
+	out := make([]tree.DescendantsTree, 0, len(rootIDs))
 	for _, id := range rootIDs {
 		visited := make(map[uint64]struct{})
 		out = append(out, s.descendantsTreeLocked(id, visited))
@@ -90,7 +92,7 @@ func (s *Store) DescendantsForest(rootIDs []uint64) ([]DescendantsTree, error) {
 	return out, nil
 }
 
-func (s *Store) DescendantsForestMeta(rootIDs []uint64) ([]DescendantsTreeMeta, error) {
+func (s *Store) DescendantsForestMeta(rootIDs []uint64) ([]tree.DescendantsTreeMeta, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -99,7 +101,7 @@ func (s *Store) DescendantsForestMeta(rootIDs []uint64) ([]DescendantsTreeMeta, 
 		return nil, err
 	}
 
-	out := make([]DescendantsTreeMeta, 0, len(rootIDs))
+	out := make([]tree.DescendantsTreeMeta, 0, len(rootIDs))
 	for _, id := range rootIDs {
 		visited := make(map[uint64]struct{})
 		out = append(out, s.descendantsTreeMetaLocked(id, visited))

@@ -1,11 +1,12 @@
 package httpapi
 
 import (
+	"celestialtree/internal/memory"
 	"celestialtree/internal/tree"
 	"net/http"
 )
 
-func handleChildren(store *tree.Store) http.HandlerFunc {
+func handleChildren(store *memory.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if !requireMethod(w, r, http.MethodGet) {
 			return
@@ -24,7 +25,7 @@ func handleChildren(store *tree.Store) http.HandlerFunc {
 	}
 }
 
-func handleAncestors(store *tree.Store) http.HandlerFunc {
+func handleAncestors(store *memory.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if !requireMethod(w, r, http.MethodGet) {
 			return
@@ -44,7 +45,7 @@ func handleAncestors(store *tree.Store) http.HandlerFunc {
 	}
 }
 
-func handleHeads(store *tree.Store) http.HandlerFunc {
+func handleHeads(store *memory.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if !requireMethod(w, r, http.MethodGet) {
 			return

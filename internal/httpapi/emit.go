@@ -1,11 +1,12 @@
 package httpapi
 
 import (
+	"celestialtree/internal/memory"
 	"celestialtree/internal/tree"
 	"net/http"
 )
 
-func handleEmit(store *tree.Store) http.HandlerFunc {
+func handleEmit(store *memory.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if !requireMethod(w, r, http.MethodPost) {
 			return

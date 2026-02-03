@@ -2,6 +2,7 @@ package httpapi
 
 import (
 	"celestialtree/internal/tree"
+	"encoding/json"
 	"net/http"
 	"strconv"
 	"strings"
@@ -27,4 +28,16 @@ func parsePathUint64(w http.ResponseWriter, path, prefix string) (uint64, bool) 
 
 func normalizeView(s string) string {
 	return strings.ToLower(strings.TrimSpace(s))
+}
+
+func writeJSON(w http.ResponseWriter, status int, v any) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(v)
+}
+
+func readJSON(r *http.Request, v any) error {
+	dec := json.NewDecoder(r.Body)
+	dec.DisallowUnknownFields()
+	return dec.Decode(v)
 }

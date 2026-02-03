@@ -1,12 +1,13 @@
 package httpapi
 
 import (
+	"celestialtree/internal/memory"
 	"celestialtree/internal/tree"
 	"fmt"
 	"net/http"
 )
 
-func handleProvenance(store *tree.Store) http.HandlerFunc {
+func handleProvenance(store *memory.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if !requireMethod(w, r, http.MethodGet) {
 			return
@@ -43,7 +44,7 @@ func handleProvenance(store *tree.Store) http.HandlerFunc {
 	}
 }
 
-func handleProvenanceBatch(store *tree.Store) http.HandlerFunc {
+func handleProvenanceBatch(store *memory.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if !requireMethod(w, r, http.MethodPost) {
 			return

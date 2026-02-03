@@ -1,15 +1,16 @@
-package tree
+package memory
 
 import (
+	"celestialtree/internal/tree"
 	"sync/atomic"
 )
 
-func (s *Store) Subscribe() (subID uint64, ch <-chan Event, cancel func()) {
+func (s *Store) Subscribe() (subID uint64, ch <-chan tree.Event, cancel func()) {
 	s.subsMu.Lock()
 	defer s.subsMu.Unlock()
 
 	subID = atomic.AddUint64(&s.subSeq, 1)
-	c := make(chan Event, 64)
+	c := make(chan tree.Event, 64)
 	s.subs[subID] = c
 
 	cancel = func() {
@@ -24,7 +25,7 @@ func (s *Store) Subscribe() (subID uint64, ch <-chan Event, cancel func()) {
 	return subID, c, cancel
 }
 
-func (s *Store) broadcast(ev Event) {
+func (s *Store) broadcast(ev tree.Event) {
 	s.subsMu.Lock()
 	defer s.subsMu.Unlock()
 

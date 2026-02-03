@@ -1,16 +1,19 @@
-package tree
+package memory
 
-import "slices"
+import (
+	"celestialtree/internal/tree"
+	"slices"
+)
 
 func (s *Store) validateRootIDLocked(id uint64) error {
 	if id == 0 {
-		return &RootIDError{
+		return &tree.RootIDError{
 			ID:     id,
 			Reason: "id must be non-zero",
 		}
 	}
 	if _, ok := s.events[id]; !ok {
-		return &RootIDError{
+		return &tree.RootIDError{
 			ID:     id,
 			Reason: "event not found",
 		}

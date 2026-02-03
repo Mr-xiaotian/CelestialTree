@@ -1,6 +1,7 @@
-package tree
+package memory
 
 import (
+	"celestialtree/internal/tree"
 	"fmt"
 	"slices"
 	"strings"
@@ -10,7 +11,7 @@ import (
 )
 
 // Store 是 CelestialTree 的内存存储实现：
-// - events:    id -> Event
+// - events:    id -> tree.Event
 // - children:  parent -> set(child)
 // - heads:     当前没有子节点的事件集合（叶子集合）
 // - subs:      订阅者集合（用于 SSE 广播）
@@ -19,28 +20,28 @@ type Store struct {
 
 	nextID uint64
 
-	events   map[uint64]Event
+	events   map[uint64]tree.Event
 	children map[uint64]map[uint64]struct{}
 	heads    map[uint64]struct{}
 
 	subsMu sync.Mutex
-	subs   map[uint64]chan Event
+	subs   map[uint64]chan tree.Event
 	subSeq uint64
 }
 
 func NewStore() *Store {
 	return &Store{
-		events:   make(map[uint64]Event),
+		events:   make(map[uint64]tree.Event),
 		children: make(map[uint64]map[uint64]struct{}),
 		heads:    make(map[uint64]struct{}),
-		subs:     make(map[uint64]chan Event),
+		subs:     make(map[uint64]chan tree.Event),
 	}
 }
 
 // Emit 追加一个事件到 DAG 中。
-func (s *Store) Emit(req EmitRequest) (Event, error) {
+func (s *Store) Emit(req tree.EmitRequest) (tree.Event, error) {
 	if strings.TrimSpace(req.Type) == "" {
-		return Event{}, fmt.Errorf("type is required")
+		return tree.Event{}, fmt.Errorf("type is required")
 	}
 
 	// parents 去重 + 过滤 0
@@ -60,7 +61,7 @@ func (s *Store) Emit(req EmitRequest) (Event, error) {
 	now := time.Now().UnixNano()
 	id := atomic.AddUint64(&s.nextID, 1)
 
-	ev := Event{
+	ev := tree.Event{
 		ID:           id,
 		TimeUnixNano: now,
 		Type:         req.Type,
@@ -75,7 +76,7 @@ func (s *Store) Emit(req EmitRequest) (Event, error) {
 	// 父事件必须存在：否则历史图会断裂
 	for _, p := range parents {
 		if _, ok := s.events[p]; !ok {
-			return Event{}, fmt.Errorf("parent %d not found", p)
+			return tree.Event{}, fmt.Errorf("parent %d not found", p)
 		}
 	}
 
@@ -100,7 +101,7 @@ func (s *Store) Emit(req EmitRequest) (Event, error) {
 	return ev, nil
 }
 
-func (s *Store) Get(id uint64) (Event, bool) {
+func (s *Store) Get(id uint64) (tree.Event, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 

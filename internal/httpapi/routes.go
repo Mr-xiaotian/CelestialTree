@@ -1,11 +1,11 @@
 package httpapi
 
 import (
-	"celestialtree/internal/tree"
+	"celestialtree/internal/memory"
 	"net/http"
 )
 
-func RegisterRoutes(mux *http.ServeMux, store *tree.Store) {
+func RegisterRoutes(mux *http.ServeMux, store *memory.Store) {
 	mux.HandleFunc("/emit", handleEmit(store))
 	mux.HandleFunc("/event/", handleGetEvent(store))
 	mux.HandleFunc("/children/", handleChildren(store))

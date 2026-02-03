@@ -1,12 +1,13 @@
 package httpapi
 
 import (
+	"celestialtree/internal/memory"
 	"celestialtree/internal/tree"
 	"fmt"
 	"net/http"
 )
 
-func handleDescendants(store *tree.Store) http.HandlerFunc {
+func handleDescendants(store *memory.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if !requireMethod(w, r, http.MethodGet) {
 			return
@@ -43,7 +44,7 @@ func handleDescendants(store *tree.Store) http.HandlerFunc {
 	}
 }
 
-func handleDescendantsBatch(store *tree.Store) http.HandlerFunc {
+func handleDescendantsBatch(store *memory.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if !requireMethod(w, r, http.MethodPost) {
 			return

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"celestialtree/internal/httpapi"
+	"celestialtree/internal/memory"
 	"celestialtree/internal/tree"
 	"celestialtree/internal/version"
 )
@@ -20,7 +21,7 @@ func main() {
 
 	addr := fmt.Sprintf("%s:%d", *host, *port)
 
-	store := tree.NewStore()
+	store := memory.NewStore()
 
 	// 创世事件（Genesis）
 	_, err := store.Emit(tree.EmitRequest{

@@ -10,10 +10,10 @@ MAIN_BIN  := $(OUT)/$(APP_NAME)
 BENCH_BIN := $(OUT)/$(BENCH_NAME)
 NOW_BIN   := $(OUT)/$(NOW_NAME)
 
-MAIN_SRC  := main.go
+MAIN_SRC  := cmd/celestialtree/main.go
 MAIN_SRC  += $(wildcard internal/**/*.go)
+NOW_SRC   := cmd/now/main.go
 BENCH_SRC := bench/bench_emit.go
-NOW_SRC   := internal/tools/now.go
 
 # ---------- version ----------
 
@@ -45,13 +45,13 @@ $(MAIN_BIN): $(OUT) $(NOW_BIN) $(MAIN_SRC)
 	-X celestialtree/internal/version.Version=$(VERSION) \
 	-X celestialtree/internal/version.GitCommit=$(GIT_COMMIT) \
 	-X celestialtree/internal/version.BuildTime=$(shell bin/now)" \
-	-o $@ .
-
-$(BENCH_BIN): $(OUT) $(BENCH_SRC)
-	go build -o $@ $(BENCH_SRC)
+	-o $@ ./cmd/celestialtree
 
 $(NOW_BIN): $(OUT) $(NOW_SRC)
 	go build -o $@ $(NOW_SRC)
+
+$(BENCH_BIN): $(OUT) $(BENCH_SRC)
+	go build -o $@ $(BENCH_SRC)
 
 # ---------- run ----------
 
