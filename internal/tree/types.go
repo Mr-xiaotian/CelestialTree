@@ -1,6 +1,9 @@
 package tree
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 // Event 是 CelestialTree 的“最小历史原子”。
 type Event struct {
@@ -79,4 +82,18 @@ type ProvenanceTreeMeta struct {
 type ResponseError struct {
 	Error  string `json:"error"`
 	Detail string `json:"detail,omitempty"`
+}
+
+// ===============================
+// 			Other结构
+// ===============================
+
+// RootIDError 表示根 ID 无效的错误。
+type RootIDError struct {
+	ID     uint64
+	Reason string
+}
+
+func (e *RootIDError) Error() string {
+	return fmt.Sprintf("invalid id %d: %s", e.ID, e.Reason)
 }

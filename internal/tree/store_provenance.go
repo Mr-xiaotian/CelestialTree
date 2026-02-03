@@ -52,36 +52,39 @@ func (s *Store) provenanceTreeMetaLocked(rootID uint64, visited map[uint64]struc
 	return node
 }
 
-func (s *Store) ProvenanceTree(rootID uint64) (ProvenanceTree, bool) {
+func (s *Store) ProvenanceTree(rootID uint64) (ProvenanceTree, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if _, ok := s.events[rootID]; !ok {
-		return ProvenanceTree{}, false
+	err := s.validateRootIDLocked(rootID)
+	if err != nil {
+		return ProvenanceTree{}, err
 	}
 
 	visited := make(map[uint64]struct{})
-	return s.provenanceTreeLocked(rootID, visited), true
+	return s.provenanceTreeLocked(rootID, visited), nil
 }
 
-func (s *Store) ProvenanceTreeMeta(rootID uint64) (ProvenanceTreeMeta, bool) {
+func (s *Store) ProvenanceTreeMeta(rootID uint64) (ProvenanceTreeMeta, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if _, ok := s.events[rootID]; !ok {
-		return ProvenanceTreeMeta{}, false
+	err := s.validateRootIDLocked(rootID)
+	if err != nil {
+		return ProvenanceTreeMeta{}, err
 	}
 
 	visited := make(map[uint64]struct{})
-	return s.provenanceTreeMetaLocked(rootID, visited), true
+	return s.provenanceTreeMetaLocked(rootID, visited), nil
 }
 
-func (s *Store) ProvenanceForest(rootIDs []uint64) ([]ProvenanceTree, bool) {
+func (s *Store) ProvenanceForest(rootIDs []uint64) ([]ProvenanceTree, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if !s.validateRootIDsLocked(rootIDs) {
-		return nil, false
+	err := s.validateRootIDsLocked(rootIDs)
+	if err != nil {
+		return nil, err
 	}
 
 	out := make([]ProvenanceTree, 0, len(rootIDs))
@@ -89,15 +92,16 @@ func (s *Store) ProvenanceForest(rootIDs []uint64) ([]ProvenanceTree, bool) {
 		visited := make(map[uint64]struct{})
 		out = append(out, s.provenanceTreeLocked(id, visited))
 	}
-	return out, true
+	return out, nil
 }
 
-func (s *Store) ProvenanceForestMeta(rootIDs []uint64) ([]ProvenanceTreeMeta, bool) {
+func (s *Store) ProvenanceForestMeta(rootIDs []uint64) ([]ProvenanceTreeMeta, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if !s.validateRootIDsLocked(rootIDs) {
-		return nil, false
+	err := s.validateRootIDsLocked(rootIDs)
+	if err != nil {
+		return nil, err
 	}
 
 	out := make([]ProvenanceTreeMeta, 0, len(rootIDs))
@@ -105,5 +109,5 @@ func (s *Store) ProvenanceForestMeta(rootIDs []uint64) ([]ProvenanceTreeMeta, bo
 		visited := make(map[uint64]struct{})
 		out = append(out, s.provenanceTreeMetaLocked(id, visited))
 	}
-	return out, true
+	return out, nil
 }

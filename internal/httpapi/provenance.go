@@ -19,18 +19,18 @@ func handleProvenance(store *tree.Store) http.HandlerFunc {
 		view := normalizeView(r.URL.Query().Get("view"))
 		switch view {
 		case "", "struct":
-			pt, ok := store.ProvenanceTree(id)
-			if !ok {
-				writeJSON(w, 404, tree.ResponseError{Error: "not found"})
+			pt, err := store.ProvenanceTree(id)
+			if err != nil {
+				writeJSON(w, 404, tree.ResponseError{Error: "provenance process failed", Detail: err.Error()})
 				return
 			}
 			writeJSON(w, 200, pt)
 			return
 
 		case "meta":
-			pt, ok := store.ProvenanceTreeMeta(id)
-			if !ok {
-				writeJSON(w, 404, tree.ResponseError{Error: "not found"})
+			pt, err := store.ProvenanceTreeMeta(id)
+			if err != nil {
+				writeJSON(w, 404, tree.ResponseError{Error: "provenance process failed", Detail: err.Error()})
 				return
 			}
 			writeJSON(w, 200, pt)
@@ -62,18 +62,18 @@ func handleProvenanceBatch(store *tree.Store) http.HandlerFunc {
 		view := normalizeView(req.View)
 		switch view {
 		case "", "struct":
-			forest, ok := store.ProvenanceForest(req.IDs)
-			if !ok {
-				writeJSON(w, 404, tree.ResponseError{Error: "not found"})
+			forest, err := store.ProvenanceForest(req.IDs)
+			if err != nil {
+				writeJSON(w, 404, tree.ResponseError{Error: "provenance process failed", Detail: err.Error()})
 				return
 			}
 			writeJSON(w, 200, forest)
 			return
 
 		case "meta":
-			forest, ok := store.ProvenanceForestMeta(req.IDs)
-			if !ok {
-				writeJSON(w, 404, tree.ResponseError{Error: "not found"})
+			forest, err := store.ProvenanceForestMeta(req.IDs)
+			if err != nil {
+				writeJSON(w, 404, tree.ResponseError{Error: "provenance process failed", Detail: err.Error()})
 				return
 			}
 			writeJSON(w, 200, forest)

@@ -19,18 +19,18 @@ func handleDescendants(store *tree.Store) http.HandlerFunc {
 		view := normalizeView(r.URL.Query().Get("view"))
 		switch view {
 		case "", "struct":
-			pm, ok := store.DescendantsTree(id)
-			if !ok {
-				writeJSON(w, 404, tree.ResponseError{Error: "not found"})
+			pm, err := store.DescendantsTree(id)
+			if err != nil {
+				writeJSON(w, 404, tree.ResponseError{Error: "descendant process failed", Detail: err.Error()})
 				return
 			}
 			writeJSON(w, 200, pm)
 			return
 
 		case "meta":
-			pm, ok := store.DescendantsTreeMeta(id)
-			if !ok {
-				writeJSON(w, 404, tree.ResponseError{Error: "not found"})
+			pm, err := store.DescendantsTreeMeta(id)
+			if err != nil {
+				writeJSON(w, 404, tree.ResponseError{Error: "descendant process failed", Detail: err.Error()})
 				return
 			}
 			writeJSON(w, 200, pm)
@@ -62,18 +62,18 @@ func handleDescendantsBatch(store *tree.Store) http.HandlerFunc {
 		view := normalizeView(req.View)
 		switch view {
 		case "", "struct":
-			forest, ok := store.DescendantsForest(req.IDs)
-			if !ok {
-				writeJSON(w, 404, tree.ResponseError{Error: "not found"})
+			forest, err := store.DescendantsForest(req.IDs)
+			if err != nil {
+				writeJSON(w, 404, tree.ResponseError{Error: "descendant process failed", Detail: err.Error()})
 				return
 			}
 			writeJSON(w, 200, forest)
 			return
 
 		case "meta":
-			forest, ok := store.DescendantsForestMeta(req.IDs)
-			if !ok {
-				writeJSON(w, 404, tree.ResponseError{Error: "not found"})
+			forest, err := store.DescendantsForestMeta(req.IDs)
+			if err != nil {
+				writeJSON(w, 404, tree.ResponseError{Error: "descendant process failed", Detail: err.Error()})
 				return
 			}
 			writeJSON(w, 200, forest)

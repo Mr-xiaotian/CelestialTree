@@ -47,36 +47,39 @@ func (s *Store) descendantsTreeMetaLocked(rootID uint64, visited map[uint64]stru
 	return node
 }
 
-func (s *Store) DescendantsTree(rootID uint64) (DescendantsTree, bool) {
+func (s *Store) DescendantsTree(rootID uint64) (DescendantsTree, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if _, ok := s.events[rootID]; !ok {
-		return DescendantsTree{}, false
+	err := s.validateRootIDLocked(rootID)
+	if err != nil {
+		return DescendantsTree{}, err
 	}
 
 	visited := make(map[uint64]struct{})
-	return s.descendantsTreeLocked(rootID, visited), true
+	return s.descendantsTreeLocked(rootID, visited), nil
 }
 
-func (s *Store) DescendantsTreeMeta(rootID uint64) (DescendantsTreeMeta, bool) {
+func (s *Store) DescendantsTreeMeta(rootID uint64) (DescendantsTreeMeta, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if _, ok := s.events[rootID]; !ok {
-		return DescendantsTreeMeta{}, false
+	err := s.validateRootIDLocked(rootID)
+	if err != nil {
+		return DescendantsTreeMeta{}, err
 	}
 
 	visited := make(map[uint64]struct{})
-	return s.descendantsTreeMetaLocked(rootID, visited), true
+	return s.descendantsTreeMetaLocked(rootID, visited), nil
 }
 
-func (s *Store) DescendantsForest(rootIDs []uint64) ([]DescendantsTree, bool) {
+func (s *Store) DescendantsForest(rootIDs []uint64) ([]DescendantsTree, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if !s.validateRootIDsLocked(rootIDs) {
-		return nil, false
+	err := s.validateRootIDsLocked(rootIDs)
+	if err != nil {
+		return nil, err
 	}
 
 	out := make([]DescendantsTree, 0, len(rootIDs))
@@ -84,15 +87,16 @@ func (s *Store) DescendantsForest(rootIDs []uint64) ([]DescendantsTree, bool) {
 		visited := make(map[uint64]struct{})
 		out = append(out, s.descendantsTreeLocked(id, visited))
 	}
-	return out, true
+	return out, nil
 }
 
-func (s *Store) DescendantsForestMeta(rootIDs []uint64) ([]DescendantsTreeMeta, bool) {
+func (s *Store) DescendantsForestMeta(rootIDs []uint64) ([]DescendantsTreeMeta, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if !s.validateRootIDsLocked(rootIDs) {
-		return nil, false
+	err := s.validateRootIDsLocked(rootIDs)
+	if err != nil {
+		return nil, err
 	}
 
 	out := make([]DescendantsTreeMeta, 0, len(rootIDs))
@@ -100,5 +104,5 @@ func (s *Store) DescendantsForestMeta(rootIDs []uint64) ([]DescendantsTreeMeta, 
 		visited := make(map[uint64]struct{})
 		out = append(out, s.descendantsTreeMetaLocked(id, visited))
 	}
-	return out, true
+	return out, nil
 }
