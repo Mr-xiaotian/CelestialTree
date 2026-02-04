@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package celestialtree.v1;
+
+option go_package = "celestialtree/proto;proto";
+
+import "google/protobuf/struct.proto";
+
+service CelestialTreeService {
+  rpc Emit(EmitRequest) returns (EmitResponse);
+}
+
+message EmitRequest {
+  string type = 1;
+  string message = 2;
+  google.protobuf.Struct payload = 3;
+  repeated uint64 parents = 4;
+}
+
+message EmitResponse {
+  uint64 id = 1;
+}
