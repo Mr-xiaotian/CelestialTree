@@ -6,7 +6,7 @@ import base64
 import statistics
 import time
 
-import requests, httpx
+import requests, httpx, asyncio
 from celestialflow import TaskExecutor
 from celestialtree import Client
 
@@ -191,7 +191,7 @@ def main():
         unpack_task_args=True,
         enable_success_cache=True,
         enable_duplicate_check=False,
-        show_progress=True,
+        show_progress=False,
         progress_desc="emit-bench",
     )
 
@@ -219,13 +219,13 @@ def main_http():
     # ---- TaskExecutor ----
     executor = EmitBenchExecutor(
         emit_once_http,
-        execution_mode="serial",
+        execution_mode="thread",
         worker_limit=args.c,
         unpack_task_args=True,
         enable_success_cache=True,
         enable_duplicate_check=False,
-        show_progress=True,
-        progress_desc="emit-bench",
+        show_progress=False,
+        progress_desc="emit-http",
     )
 
     start = time.perf_counter()
@@ -252,13 +252,13 @@ def main_grpc():
     # ---- TaskExecutor ----
     executor = EmitBenchExecutor(
         emit_once_grpc,
-        execution_mode="serial",
+        execution_mode="thread",
         worker_limit=args.c,
         unpack_task_args=True,
         enable_success_cache=True,
         enable_duplicate_check=False,
-        show_progress=True,
-        progress_desc="emit-bench",
+        show_progress=False,
+        progress_desc="emit-grpc",
     )
 
     start = time.perf_counter()
@@ -290,7 +290,7 @@ async def main_async():
         enable_success_cache=True,
         enable_duplicate_check=False,
         show_progress=True,
-        progress_desc="emit-bench",
+        progress_desc="emit-async",
     )
 
     start = time.perf_counter()
@@ -302,6 +302,7 @@ async def main_async():
 
 
 if __name__ == "__main__":
+    main()
     main_grpc()
     # asyncio.run(main_async())
     pass

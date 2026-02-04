@@ -2,18 +2,22 @@
 
 OUT := bin
 
-APP_NAME   := celestialtree
-BENCH_NAME := bench_emit
-NOW_NAME   := now
+APP_NAME        := celestialtree
+BENCH_HTTP_NAME := bench_emit_http
+BENCH_GRPC_NAME := bench_emit_grpc
+NOW_NAME        := now
 
-MAIN_BIN  := $(OUT)/$(APP_NAME)
-BENCH_BIN := $(OUT)/$(BENCH_NAME)
-NOW_BIN   := $(OUT)/$(NOW_NAME)
+MAIN_BIN       := $(OUT)/$(APP_NAME)
+BENCH_HTTP_BIN := $(OUT)/$(BENCH_HTTP_NAME)
+BENCH_GRPC_BIN := $(OUT)/$(BENCH_GRPC_NAME)
+NOW_BIN        := $(OUT)/$(NOW_NAME)
 
 MAIN_SRC  := cmd/celestialtree/main.go
 MAIN_SRC  += $(wildcard internal/**/*.go)
 NOW_SRC   := cmd/now/main.go
-BENCH_SRC := bench/bench_emit.go
+
+BENCH_HTTP_PKG := ./bench/http/emit.go
+BENCH_GRPC_PKG := ./bench/grpc/emit.go
 
 # ---------- version ----------
 
@@ -29,13 +33,13 @@ GIT_COMMIT := $(shell git rev-parse --short HEAD 2>$(NULLDEV) || echo unknown)
 
 # ---------- phony ----------
 
-.PHONY: all build run bench version
+.PHONY: all build run bench bench-http bench-grpc version
 
 all: build
 
 # ---------- build ----------
 
-build: $(MAIN_BIN) $(BENCH_BIN) $(NOW_BIN)
+build: $(MAIN_BIN) $(BENCH_HTTP_BIN) $(BENCH_GRPC_BIN) $(NOW_BIN)
 
 $(OUT):
 	mkdir $(OUT)
@@ -50,16 +54,26 @@ $(MAIN_BIN): $(OUT) $(NOW_BIN) $(MAIN_SRC)
 $(NOW_BIN): $(OUT) $(NOW_SRC)
 	go build -o $@ $(NOW_SRC)
 
-$(BENCH_BIN): $(OUT) $(BENCH_SRC)
-	go build -o $@ $(BENCH_SRC)
+$(BENCH_HTTP_BIN): $(OUT)
+	go build -o $@ $(BENCH_HTTP_PKG)
+
+$(BENCH_GRPC_BIN): $(OUT)
+	go build -o $@ $(BENCH_GRPC_PKG)
 
 # ---------- run ----------
 
 run: $(MAIN_BIN)
 	$(MAIN_BIN)
 
-bench: $(BENCH_BIN)
-	$(BENCH_BIN)
+# ---------- bench ----------
+
+bench: bench-http bench-grpc
+
+bench-http: $(BENCH_HTTP_BIN)
+	$(BENCH_HTTP_BIN)
+
+bench-grpc: $(BENCH_GRPC_BIN)
+	$(BENCH_GRPC_BIN)
 
 # ---------- info ----------
 
