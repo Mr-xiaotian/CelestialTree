@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 
 	"celestialtree/internal/tree"
-	pb "celestialtree/proto" // 按你生成的 import 改
+	pb "celestialtree/proto"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

@@ -78,15 +78,15 @@ type ProvenanceTreeMeta struct {
 	Parents      []ProvenanceTreeMeta `json:"parents"`
 }
 
+// ===============================
+// 			Error结构
+// ===============================
+
 // ResponseError 是错误响应的响应体。
 type ResponseError struct {
 	Error  string `json:"error"`
 	Detail string `json:"detail,omitempty"`
 }
-
-// ===============================
-// 			Other结构
-// ===============================
 
 // RootIDError 表示根 ID 无效的错误。
 type RootIDError struct {

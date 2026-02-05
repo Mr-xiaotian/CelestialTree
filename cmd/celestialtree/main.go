@@ -71,7 +71,7 @@ func main() {
 	}
 
 	grpcSrv := grpc.NewServer(
-	// 以后你可以在这里加拦截器：日志、鉴权、trace、限流...
+	// 以后可以在这里加拦截器：日志、鉴权、trace、限流...
 	)
 
 	pb.RegisterCelestialTreeServiceServer(grpcSrv, grpcapi.New(store))
