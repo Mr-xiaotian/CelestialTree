@@ -1,6 +1,6 @@
 package memory
 
-import "celestialtree/internal/tree"
+import "github.com/Mr-xiaotian/CelestialTree/internal/tree"
 
 func (s *Store) Get(id uint64) (tree.Event, bool) {
 	s.mu.Lock()

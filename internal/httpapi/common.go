@@ -1,11 +1,12 @@
 package httpapi
 
 import (
-	"celestialtree/internal/tree"
 	"encoding/json"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/Mr-xiaotian/CelestialTree/internal/tree"
 )
 
 func requireMethod(w http.ResponseWriter, r *http.Request, method string) bool {

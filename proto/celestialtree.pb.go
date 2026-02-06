@@ -147,7 +147,7 @@ const file_proto_celestialtree_proto_rawDesc = "" +
 	"\fEmitResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id2]\n" +
 	"\x14CelestialTreeService\x12E\n" +
-	"\x04Emit\x12\x1d.celestialtree.v1.EmitRequest\x1a\x1e.celestialtree.v1.EmitResponseB\x1bZ\x19celestialtree/proto;protob\x06proto3"
+	"\x04Emit\x12\x1d.celestialtree.v1.EmitRequest\x1a\x1e.celestialtree.v1.EmitResponseB2Z0github.com/Mr-xiaotian/CelestialTree/proto;protob\x06proto3"
 
 var (
 	file_proto_celestialtree_proto_rawDescOnce sync.Once

@@ -1,8 +1,8 @@
 package grpcapi
 
 import (
-	"celestialtree/internal/memory"
-	pb "celestialtree/proto"
+	"github.com/Mr-xiaotian/CelestialTree/internal/memory"
+	pb "github.com/Mr-xiaotian/CelestialTree/proto"
 )
 
 type Server struct {

@@ -1,11 +1,12 @@
 package memory
 
 import (
-	"celestialtree/internal/tree"
 	"fmt"
 	"strings"
 	"sync/atomic"
 	"time"
+
+	"github.com/Mr-xiaotian/CelestialTree/internal/tree"
 )
 
 // Emit 追加一个事件到 DAG 中。

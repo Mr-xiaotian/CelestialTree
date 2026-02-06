@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package celestialtree.v1;
 
-option go_package = "celestialtree/proto;proto";
+option go_package = "github.com/Mr-xiaotian/CelestialTree/proto;proto";
 
 import "google/protobuf/struct.proto";
 

@@ -1,8 +1,9 @@
 package memory
 
 import (
-	"celestialtree/internal/tree"
 	"slices"
+
+	"github.com/Mr-xiaotian/CelestialTree/internal/tree"
 )
 
 func (s *Store) validateRootIDLocked(id uint64) error {

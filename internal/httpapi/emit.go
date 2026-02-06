@@ -1,9 +1,10 @@
 package httpapi
 
 import (
-	"celestialtree/internal/memory"
-	"celestialtree/internal/tree"
 	"net/http"
+
+	"github.com/Mr-xiaotian/CelestialTree/internal/memory"
+	"github.com/Mr-xiaotian/CelestialTree/internal/tree"
 )
 
 func handleEmit(store *memory.Store) http.HandlerFunc {

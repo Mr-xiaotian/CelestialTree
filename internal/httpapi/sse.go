@@ -1,15 +1,14 @@
 package httpapi
 
 import (
-	"celestialtree/internal/memory"
-	"celestialtree/internal/tree"
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/Mr-xiaotian/CelestialTree/internal/memory"
+	"github.com/Mr-xiaotian/CelestialTree/internal/tree"
 )
 
-// 为了避免 handlers.go 过长，SSE 的 handler 放到 sse_handler.go 也行。
-// 这里先留在一个文件里。
 func handleSubscribe(store *memory.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {

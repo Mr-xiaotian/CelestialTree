@@ -12,12 +12,12 @@ import (
 	"syscall"
 	"time"
 
-	"celestialtree/internal/grpcapi"
-	"celestialtree/internal/httpapi"
-	"celestialtree/internal/memory"
-	"celestialtree/internal/tree"
-	"celestialtree/internal/version"
-	pb "celestialtree/proto"
+	"github.com/Mr-xiaotian/CelestialTree/internal/grpcapi"
+	"github.com/Mr-xiaotian/CelestialTree/internal/httpapi"
+	"github.com/Mr-xiaotian/CelestialTree/internal/memory"
+	"github.com/Mr-xiaotian/CelestialTree/internal/tree"
+	"github.com/Mr-xiaotian/CelestialTree/internal/version"
+	pb "github.com/Mr-xiaotian/CelestialTree/proto"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"

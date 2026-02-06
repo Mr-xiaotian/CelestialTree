@@ -1,9 +1,10 @@
 package httpapi
 
 import (
-	"celestialtree/internal/version"
 	"net/http"
 	"time"
+
+	"github.com/Mr-xiaotian/CelestialTree/internal/version"
 )
 
 func handleHealthz() http.HandlerFunc {

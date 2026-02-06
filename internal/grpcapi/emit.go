@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 
-	"celestialtree/internal/tree"
-	pb "celestialtree/proto"
+	"github.com/Mr-xiaotian/CelestialTree/internal/tree"
+	pb "github.com/Mr-xiaotian/CelestialTree/proto"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

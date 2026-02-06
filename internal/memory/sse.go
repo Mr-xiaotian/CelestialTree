@@ -1,8 +1,9 @@
 package memory
 
 import (
-	"celestialtree/internal/tree"
 	"sync/atomic"
+
+	"github.com/Mr-xiaotian/CelestialTree/internal/tree"
 )
 
 func (s *Store) Subscribe() (subID uint64, ch <-chan tree.Event, cancel func()) {

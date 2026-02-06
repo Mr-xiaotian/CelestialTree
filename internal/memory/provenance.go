@@ -1,6 +1,6 @@
 package memory
 
-import "celestialtree/internal/tree"
+import "github.com/Mr-xiaotian/CelestialTree/internal/tree"
 
 func (s *Store) provenanceTreeLocked(rootID uint64, visited map[uint64]struct{}) tree.ProvenanceTree {
 	if _, seen := visited[rootID]; seen {

@@ -1,6 +1,6 @@
 package memory
 
-import "celestialtree/internal/tree"
+import "github.com/Mr-xiaotian/CelestialTree/internal/tree"
 
 func (s *Store) descendantsTreeLocked(rootID uint64, visited map[uint64]struct{}) tree.DescendantsTree {
 	if _, seen := visited[rootID]; seen {

@@ -1,8 +1,9 @@
 package httpapi
 
 import (
-	"celestialtree/internal/memory"
 	"net/http"
+
+	"github.com/Mr-xiaotian/CelestialTree/internal/memory"
 )
 
 func RegisterRoutes(mux *http.ServeMux, store *memory.Store) {

@@ -1,8 +1,9 @@
 package memory
 
 import (
-	"celestialtree/internal/tree"
 	"sync"
+
+	"github.com/Mr-xiaotian/CelestialTree/internal/tree"
 )
 
 // Store 是 CelestialTree 的内存存储实现：

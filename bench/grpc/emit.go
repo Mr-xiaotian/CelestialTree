@@ -9,7 +9,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	pb "celestialtree/proto"
+	pb "github.com/Mr-xiaotian/CelestialTree/proto"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"

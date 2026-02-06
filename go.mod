@@ -1,4 +1,4 @@
-module celestialtree
+module github.com/Mr-xiaotian/CelestialTree
 
 go 1.25
 
