@@ -46,9 +46,9 @@ $(OUT):
 
 $(MAIN_BIN): $(OUT) $(NOW_BIN) $(MAIN_SRC)
 	go build -ldflags "\
-	-X celestialtree/internal/version.Version=$(VERSION) \
-	-X celestialtree/internal/version.GitCommit=$(GIT_COMMIT) \
-	-X celestialtree/internal/version.BuildTime=$(shell bin/now)" \
+	-X github.com/Mr-xiaotian/CelestialTree/internal/version.Version=$(VERSION) \
+	-X github.com/Mr-xiaotian/CelestialTree/internal/version.GitCommit=$(GIT_COMMIT) \
+	-X github.com/Mr-xiaotian/CelestialTree/internal/version.BuildTime=$(shell bin/now)" \
 	-o $@ ./cmd/celestialtree
 
 $(NOW_BIN): $(OUT) $(NOW_SRC)

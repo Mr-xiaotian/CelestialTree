@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -24,21 +25,24 @@ import (
 )
 
 func main() {
-	host := flag.String("host", "0.0.0.0", "server listen host (http/grpc)")
-	port := flag.Int("port", 7777, "http listen port")
+	httpAddrFlag := flag.String("http_addr", "", "http listen addr host:port (preferred)")
+	grpcAddrFlag := flag.String("grpc_addr", "", "grpc listen addr host:port (preferred)")
 
-	grpcHost := flag.String("grpc_host", "", "grpc listen host (default: same as -host)")
+	host := flag.String("host", "0.0.0.0", "server listen host (http/grpc)")
+	httpPort := flag.Int("http_port", 7777, "http listen port")
 	grpcPort := flag.Int("grpc_port", 7778, "grpc listen port")
 
 	flag.Parse()
 
-	httpAddr := fmt.Sprintf("%s:%d", *host, *port)
-
-	gh := *grpcHost
-	if gh == "" {
-		gh = *host
+	httpAddr := *httpAddrFlag
+	if httpAddr == "" {
+		httpAddr = net.JoinHostPort(*host, strconv.Itoa(*httpPort))
 	}
-	grpcAddr := fmt.Sprintf("%s:%d", gh, *grpcPort)
+
+	grpcAddr := *grpcAddrFlag
+	if grpcAddr == "" {
+		grpcAddr = net.JoinHostPort(*host, strconv.Itoa(*grpcPort))
+	}
 
 	store := memory.NewStore()
 
@@ -50,7 +54,6 @@ func main() {
 	})
 	if err != nil {
 		log.Fatalf("genesis failed: %v", err)
-		os.Exit(1)
 	}
 
 	// ---------------- HTTP ----------------
