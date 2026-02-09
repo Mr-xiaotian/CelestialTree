@@ -2,19 +2,19 @@
 
 OUT := bin
 
+NOW_NAME        := now
 APP_NAME        := celestialtree
 BENCH_HTTP_NAME := bench_emit_http
 BENCH_GRPC_NAME := bench_emit_grpc
-NOW_NAME        := now
 
+NOW_BIN        := $(OUT)/$(NOW_NAME)
 MAIN_BIN       := $(OUT)/$(APP_NAME)
 BENCH_HTTP_BIN := $(OUT)/$(BENCH_HTTP_NAME)
 BENCH_GRPC_BIN := $(OUT)/$(BENCH_GRPC_NAME)
-NOW_BIN        := $(OUT)/$(NOW_NAME)
 
+NOW_SRC   := cmd/now/main.go
 MAIN_SRC  := cmd/celestialtree/main.go
 MAIN_SRC  += $(wildcard internal/**/*.go)
-NOW_SRC   := cmd/now/main.go
 
 BENCH_HTTP_PKG := ./bench/http/emit.go
 BENCH_GRPC_PKG := ./bench/grpc/emit.go
@@ -44,6 +44,9 @@ build: $(MAIN_BIN) $(BENCH_HTTP_BIN) $(BENCH_GRPC_BIN) $(NOW_BIN)
 $(OUT):
 	mkdir $(OUT)
 
+$(NOW_BIN): $(OUT) $(NOW_SRC)
+	go build -o $@ $(NOW_SRC)
+
 $(MAIN_BIN): $(OUT) $(NOW_BIN) $(MAIN_SRC)
 	go build -ldflags "\
 	-X github.com/Mr-xiaotian/CelestialTree/internal/version.Version=$(VERSION) \
@@ -51,13 +54,10 @@ $(MAIN_BIN): $(OUT) $(NOW_BIN) $(MAIN_SRC)
 	-X github.com/Mr-xiaotian/CelestialTree/internal/version.BuildTime=$(shell bin/now)" \
 	-o $@ ./cmd/celestialtree
 
-$(NOW_BIN): $(OUT) $(NOW_SRC)
-	go build -o $@ $(NOW_SRC)
-
-$(BENCH_HTTP_BIN): $(OUT)
+$(BENCH_HTTP_BIN): $(OUT) $(BENCH_HTTP_PKG)
 	go build -o $@ $(BENCH_HTTP_PKG)
 
-$(BENCH_GRPC_BIN): $(OUT)
+$(BENCH_GRPC_BIN): $(OUT) $(BENCH_GRPC_PKG)
 	go build -o $@ $(BENCH_GRPC_PKG)
 
 # ---------- run ----------
@@ -78,4 +78,4 @@ bench-grpc: $(BENCH_GRPC_BIN)
 # ---------- info ----------
 
 version:
-	@echo $(APP_NAME) $(VERSION) ($(GIT_COMMIT)) built at $(BUILD_TIME)
+	@echo $(APP_NAME) $(VERSION)($(GIT_COMMIT)) built at $(shell bin/now)
