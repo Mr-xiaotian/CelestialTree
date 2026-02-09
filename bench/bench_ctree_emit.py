@@ -8,19 +8,16 @@ import time
 
 import requests, httpx, asyncio
 from celestialflow import TaskExecutor
-from celestialtree import Client
 
 
 def now_ms() -> float:
     return time.perf_counter() * 1000.0
 
 CTREE_HOST = "127.0.0.1"
-CTREE_PORT = 7777
-CTREE_GRPC_PORT = 7778
+CTREE_HTTP_PORT = 7777
 
 session = requests.Session()
 async_client = httpx.AsyncClient(trust_env=False)
-ctree_client = Client(host=CTREE_HOST, port=CTREE_PORT, grpc_port=CTREE_GRPC_PORT)
 
 # ===============================
 # 单个 Emit 任务的执行函数
@@ -34,7 +31,7 @@ def emit_once(payload_size, _) -> float:
     payload_raw = os.urandom(payload_size)
     payload_b64 = base64.b64encode(payload_raw).decode("ascii")
 
-    url = f"http://{CTREE_HOST}:{CTREE_PORT}/emit"
+    url = f"http://{CTREE_HOST}:{CTREE_HTTP_PORT}/emit"
     payload = {
         "type": "bench",
         "parents": [],
@@ -52,52 +49,6 @@ def emit_once(payload_size, _) -> float:
     return t1 - t0
 
 
-def emit_once_http(payload_size, _) -> float:
-    """
-    Docstring for emit_once_http
-    
-    :param payload_size: Description
-    :param _: Description
-    :return: Description
-    :rtype: float
-    """
-    payload_raw = os.urandom(payload_size)
-    payload_b64 = base64.b64encode(payload_raw).decode("ascii")
-
-    payload = {
-        "payload_b64": payload_b64,
-    }
-
-    t0 = now_ms()
-    ctree_client.emit("bench", [], f"bench payload {payload_size}B", payload)
-    t1 = now_ms()
-
-    return t1 - t0
-
-
-def emit_once_grpc(payload_size, _) -> float:
-    """
-    Docstring for emit_once_grpc
-    
-    :param payload_size: Description
-    :param _: Description
-    :return: Description
-    :rtype: float
-    """
-    payload_raw = os.urandom(payload_size)
-    payload_b64 = base64.b64encode(payload_raw).decode("ascii")
-
-    payload = {
-        "payload_b64": payload_b64,
-    }
-
-    t0 = now_ms()
-    ctree_client.emit_grpc("bench", [], f"bench payload {payload_size}B", payload)
-    t1 = now_ms()
-
-    return t1 - t0
-
-
 async def emit_once_async(
     payload_size: int,
     _
@@ -109,7 +60,7 @@ async def emit_once_async(
     payload_raw = os.urandom(payload_size)
     payload_b64 = base64.b64encode(payload_raw).decode("ascii")
 
-    url = f"http://{CTREE_HOST}:{CTREE_PORT}/emit"
+    url = f"http://{CTREE_HOST}:{CTREE_HTTP_PORT}/emit"
     payload = {
         "type": "bench",
         "parents": [],
@@ -203,71 +154,6 @@ def main():
     # ---- 统计 ----
     print_stats(args, results, elapsed)
 
-def main_http():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--n", type=int, default=10000)
-    ap.add_argument("--c", type=int, default=20)
-    ap.add_argument("--payload-bytes", type=int, default=32)
-    args = ap.parse_args()
-
-    # ---- 构造任务列表 ----
-    task_list = [
-        (args.payload_bytes, index)
-        for index in range(args.n)
-    ]
-
-    # ---- TaskExecutor ----
-    executor = EmitBenchExecutor(
-        emit_once_http,
-        execution_mode="thread",
-        worker_limit=args.c,
-        unpack_task_args=True,
-        enable_success_cache=True,
-        enable_duplicate_check=False,
-        show_progress=False,
-        progress_desc="emit-http",
-    )
-
-    start = time.perf_counter()
-    executor.start(task_list)
-    elapsed = time.perf_counter() - start
-    results = executor.process_result_dict()
-
-    # ---- 统计 ----
-    print_stats(args, results, elapsed)
-
-def main_grpc():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--n", type=int, default=10000)
-    ap.add_argument("--c", type=int, default=20)
-    ap.add_argument("--payload-bytes", type=int, default=32)
-    args = ap.parse_args()
-
-    # ---- 构造任务列表 ----
-    task_list = [
-        (args.payload_bytes, index)
-        for index in range(args.n)
-    ]
-
-    # ---- TaskExecutor ----
-    executor = EmitBenchExecutor(
-        emit_once_grpc,
-        execution_mode="thread",
-        worker_limit=args.c,
-        unpack_task_args=True,
-        enable_success_cache=True,
-        enable_duplicate_check=False,
-        show_progress=False,
-        progress_desc="emit-grpc",
-    )
-
-    start = time.perf_counter()
-    executor.start(task_list)
-    elapsed = time.perf_counter() - start
-    results = executor.process_result_dict()
-
-    # ---- 统计 ----
-    print_stats(args, results, elapsed)
 
 async def main_async():
     ap = argparse.ArgumentParser()
@@ -303,6 +189,5 @@ async def main_async():
 
 if __name__ == "__main__":
     main()
-    main_grpc()
-    # asyncio.run(main_async())
+    asyncio.run(main_async())
     pass
