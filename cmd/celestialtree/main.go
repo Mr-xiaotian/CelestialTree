@@ -24,7 +24,12 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
-func main() {
+type Config struct {
+	HTTPAddr string
+	GRPCAddr string
+}
+
+func parseConfig() Config {
 	httpAddrFlag := flag.String("http_addr", "", "http listen addr host:port (preferred)")
 	grpcAddrFlag := flag.String("grpc_addr", "", "grpc listen addr host:port (preferred)")
 
@@ -44,6 +49,10 @@ func main() {
 		grpcAddr = net.JoinHostPort(*host, strconv.Itoa(*grpcPort))
 	}
 
+	return Config{HTTPAddr: httpAddr, GRPCAddr: grpcAddr}
+}
+
+func newStoreWithGenesis() (*memory.Store, error) {
 	store := memory.NewStore()
 
 	// 创世事件（Genesis）
@@ -53,60 +62,69 @@ func main() {
 		Message: "CelestialTree begins.",
 	})
 	if err != nil {
-		log.Fatalf("genesis failed: %v", err)
+		return nil, err
 	}
+	return store, nil
+}
 
-	// ---------------- HTTP ----------------
+func newHTTPServer(addr string, store *memory.Store) *http.Server {
 	mux := http.NewServeMux()
 	httpapi.RegisterRoutes(mux, store)
 
-	httpSrv := &http.Server{
-		Addr:              httpAddr,
+	return &http.Server{
+		Addr:              addr,
 		Handler:           mux,
 		ReadHeaderTimeout: 3 * time.Second,
 		IdleTimeout:       60 * time.Second,
 	}
+}
 
-	// ---------------- gRPC ----------------
-	lis, err := net.Listen("tcp", grpcAddr)
+func newGRPCServer(addr string, store *memory.Store) (*grpc.Server, net.Listener, error) {
+	lis, err := net.Listen("tcp", addr)
 	if err != nil {
-		log.Fatalf("grpc listen failed on %s: %v", grpcAddr, err)
+		return nil, nil, err
 	}
 
-	grpcSrv := grpc.NewServer(
+	srv := grpc.NewServer(
 	// 以后可以在这里加拦截器：日志、鉴权、trace、限流...
 	)
+	pb.RegisterCelestialTreeServiceServer(srv, grpcapi.New(store))
+	reflection.Register(srv) // 方便 grpcurl 调试（生产环境可按需关）
 
-	pb.RegisterCelestialTreeServiceServer(grpcSrv, grpcapi.New(store))
-	reflection.Register(grpcSrv) // 方便 grpcurl 调试（生产环境可按需关）
+	return srv, lis, nil
+}
 
-	// ---------------- logs ----------------
-	log.Printf(
-		"%s %s(%s) built at %s",
-		version.Name,
-		version.Version,
-		version.GitCommit,
-		version.BuildTime,
-	)
+func main() {
+	cfg := parseConfig()
 
-	// ---------------- run ----------------
+	store, err := newStoreWithGenesis()
+	if err != nil {
+		log.Fatalf("genesis failed: %v", err)
+	}
+
+	httpSrv := newHTTPServer(cfg.HTTPAddr, store)
+
+	grpcSrv, lis, err := newGRPCServer(cfg.GRPCAddr, store)
+	if err != nil {
+		log.Fatalf("grpc listen failed on %s: %v", cfg.GRPCAddr, err)
+	}
+
+	log.Printf("%s %s(%s) built at %s", version.Name, version.Version, version.GitCommit, version.BuildTime)
+
 	errCh := make(chan error, 2)
-
 	go func() {
-		log.Printf("CelestialTree listening on http://%s", httpAddr)
+		log.Printf("CelestialTree listening on http://%s", cfg.HTTPAddr)
 		if err := httpSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			errCh <- fmt.Errorf("http server error: %w", err)
 		}
 	}()
-
 	go func() {
-		log.Printf("CelestialTree listening on grpc://%s", grpcAddr)
+		log.Printf("CelestialTree listening on grpc://%s", cfg.GRPCAddr)
 		if err := grpcSrv.Serve(lis); err != nil {
 			errCh <- fmt.Errorf("grpc server error: %w", err)
 		}
 	}()
 
-	// ---------------- graceful shutdown ----------------
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
 
@@ -118,9 +136,7 @@ func main() {
 	}
 
 	// 先停 gRPC（它没有 context 超时参数，用 GracefulStop）
-	go func() {
-		grpcSrv.GracefulStop()
-	}()
+	grpcSrv.GracefulStop()
 
 	// 再停 HTTP（带超时）
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -128,6 +144,5 @@ func main() {
 	if err := httpSrv.Shutdown(ctx); err != nil {
 		log.Printf("http shutdown error: %v", err)
 	}
-
 	log.Printf("bye.")
 }
