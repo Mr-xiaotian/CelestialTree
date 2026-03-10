@@ -78,6 +78,14 @@ type ProvenanceTreeMeta struct {
 	Parents      []ProvenanceTreeMeta `json:"parents"`
 }
 
+type Snapshot struct {
+	Events      int    `json:"events"`
+	Edges       int    `json:"edges"`
+	Heads       int    `json:"heads"`
+	Subscribers int    `json:"subscribers"`
+	NextEventID uint64 `json:"next_event_id"`
+}
+
 // ===============================
 // 			Error结构
 // ===============================
