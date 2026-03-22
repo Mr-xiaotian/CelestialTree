@@ -18,6 +18,7 @@ type Store struct {
 
 	events   map[uint64]tree.Event
 	children map[uint64]map[uint64]struct{}
+	roots    map[uint64]struct{}
 	heads    map[uint64]struct{}
 
 	subsMu sync.Mutex
@@ -29,6 +30,7 @@ func NewStore() *Store {
 	return &Store{
 		events:   make(map[uint64]tree.Event),
 		children: make(map[uint64]map[uint64]struct{}),
+		roots:    make(map[uint64]struct{}),
 		heads:    make(map[uint64]struct{}),
 		subs:     make(map[uint64]chan tree.Event),
 	}

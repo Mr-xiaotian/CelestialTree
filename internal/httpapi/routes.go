@@ -13,6 +13,7 @@ func RegisterRoutes(mux *http.ServeMux, store *memory.Store) {
 	mux.HandleFunc("/ancestors/", handleAncestors(store))
 
 	mux.HandleFunc("/heads", handleHeads(store))
+	mux.HandleFunc("/roots", handleRoots(store))
 	mux.HandleFunc("/snapshot", handleSnapshot(store))
 	mux.HandleFunc("/healthz", handleHealthz())
 	mux.HandleFunc("/version", handleVersion())

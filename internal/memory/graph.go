@@ -86,3 +86,14 @@ func (s *Store) Heads() []uint64 {
 	}
 	return out
 }
+
+func (s *Store) Roots() []uint64 {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	out := make([]uint64, 0, len(s.roots))
+	for id := range s.roots {
+		out = append(out, id)
+	}
+	return out
+}

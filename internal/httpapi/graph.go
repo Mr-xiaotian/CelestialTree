@@ -54,3 +54,12 @@ func handleHeads(store *memory.Store) http.HandlerFunc {
 		writeJSON(w, 200, store.Heads())
 	}
 }
+
+func handleRoots(store *memory.Store) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if !requireMethod(w, r, http.MethodGet) {
+			return
+		}
+		writeJSON(w, 200, store.Roots())
+	}
+}
