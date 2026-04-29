@@ -10,15 +10,14 @@ func (s *Store) Children(id uint64) ([]uint64, bool) {
 		return nil, false
 	}
 
-	set := s.children[id]
-	if set == nil {
+	sli := s.children[id]
+	if sli == nil {
 		return []uint64{}, true
 	}
 
-	out := make([]uint64, 0, len(set))
-	for c := range set {
-		out = append(out, c)
-	}
+	out := make([]uint64, len(sli))
+	copy(out, sli)
+
 	return out, true
 }
 

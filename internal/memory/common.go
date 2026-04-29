@@ -33,14 +33,12 @@ func (s *Store) validateRootIDsLocked(rootIDs []uint64) error {
 	return nil
 }
 
-func sortedChildIDs(set map[uint64]struct{}) []uint64 {
-	if len(set) == 0 {
+func sortedChildIDs(sli []uint64) []uint64 {
+	if len(sli) == 0 {
 		return []uint64{}
 	}
-	out := make([]uint64, 0, len(set))
-	for id := range set {
-		out = append(out, id)
-	}
+	out := make([]uint64, len(sli))
+	copy(out, sli)
 	slices.Sort(out)
 	return out
 }

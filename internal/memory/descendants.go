@@ -10,8 +10,8 @@ func (s *Store) descendantsTreeLocked(rootID uint64, visited map[uint64]struct{}
 
 	node := tree.DescendantsTree{ID: rootID, Children: []tree.DescendantsTree{}}
 
-	childSet := s.children[rootID]
-	for _, childID := range sortedChildIDs(childSet) {
+	childSli := s.children[rootID]
+	for _, childID := range sortedChildIDs(childSli) {
 		node.Children = append(node.Children, s.descendantsTreeLocked(childID, visited))
 	}
 	return node

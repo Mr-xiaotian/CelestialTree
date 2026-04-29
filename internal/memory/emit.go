@@ -59,10 +59,7 @@ func (s *Store) Emit(req tree.EmitRequest) (tree.Event, error) {
 
 	// 有 parents -> parents 不再是 head；同时建立 parent -> child 边
 	for _, p := range parents {
-		if s.children[p] == nil {
-			s.children[p] = make(map[uint64]struct{})
-		}
-		s.children[p][id] = struct{}{}
+		s.children[p] = append(s.children[p], id)
 		delete(s.heads, p)
 	}
 
