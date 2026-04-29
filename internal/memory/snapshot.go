@@ -6,7 +6,8 @@ import (
 
 func (s *Store) Snapshot() tree.Snapshot {
 	s.mu.Lock()
-	events := len(s.events)
+	events := s.countEvents()
+	roots := len(s.roots)
 	heads := len(s.heads)
 	nextEventID := s.nextID
 	edges := 0
@@ -22,6 +23,7 @@ func (s *Store) Snapshot() tree.Snapshot {
 	return tree.Snapshot{
 		Events:      events,
 		Edges:       edges,
+		Roots:       roots,
 		Heads:       heads,
 		Subscribers: subscribers,
 		NextEventID: nextEventID,

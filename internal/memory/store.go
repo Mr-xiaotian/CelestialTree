@@ -16,7 +16,7 @@ type Store struct {
 
 	nextID uint64
 
-	events   map[uint64]tree.Event
+	events   []tree.Event
 	children map[uint64][]uint64
 	roots    map[uint64]struct{}
 	heads    map[uint64]struct{}
@@ -28,7 +28,7 @@ type Store struct {
 
 func NewStore() *Store {
 	return &Store{
-		events:   make(map[uint64]tree.Event),
+		events:   make([]tree.Event, 0, 1024),
 		children: make(map[uint64][]uint64),
 		roots:    make(map[uint64]struct{}),
 		heads:    make(map[uint64]struct{}),

@@ -6,7 +6,7 @@ func (s *Store) Children(id uint64) ([]uint64, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if _, ok := s.events[id]; !ok {
+	if !s.isEventIDValid(id) {
 		return nil, false
 	}
 
@@ -25,7 +25,7 @@ func (s *Store) Ancestors(id uint64) ([]uint64, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if _, ok := s.events[id]; !ok {
+	if !s.isEventIDValid(id) {
 		return nil, false
 	}
 
@@ -39,10 +39,10 @@ func (s *Store) Ancestors(id uint64) ([]uint64, bool) {
 		}
 		visited[cur] = struct{}{}
 
-		ev, ok := s.events[cur]
-		if !ok {
+		if !s.isEventIDValid(cur) {
 			return false
 		}
+		ev := s.events[cur]
 
 		// root：没有 parents
 		if len(ev.Parents) == 0 {
@@ -51,7 +51,7 @@ func (s *Store) Ancestors(id uint64) ([]uint64, bool) {
 		}
 
 		for _, p := range ev.Parents {
-			if _, ok := s.events[p]; !ok {
+			if !s.isEventIDValid(p) {
 				return false
 			}
 			if !dfs(p) {

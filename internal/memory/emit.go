@@ -46,12 +46,15 @@ func (s *Store) Emit(req tree.EmitRequest) (tree.Event, error) {
 
 	// 父事件必须存在：否则历史图会断裂
 	for _, p := range parents {
-		if _, ok := s.events[p]; !ok {
+		if !s.isEventIDValid(p) {
 			return tree.Event{}, fmt.Errorf("parent %d not found", p)
 		}
 	}
 
 	// 写入事件
+	for uint64(len(s.events)) <= id {
+		s.events = append(s.events, tree.Event{})
+	}
 	s.events[id] = ev
 
 	// 新事件默认是 head

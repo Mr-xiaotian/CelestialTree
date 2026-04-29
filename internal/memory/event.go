@@ -6,6 +6,9 @@ func (s *Store) Get(id uint64) (tree.Event, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	ev, ok := s.events[id]
-	return ev, ok
+	if !s.isEventIDValid(id) {
+		return tree.Event{}, false
+	}
+	ev := s.events[id]
+	return ev, true
 }

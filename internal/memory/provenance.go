@@ -12,7 +12,7 @@ func (s *Store) provenanceTreeLocked(rootID uint64, visited map[uint64]struct{})
 
 	ev := s.events[rootID]
 	for _, pid := range ev.Parents {
-		if _, ok := s.events[pid]; !ok {
+		if !s.isEventIDValid(pid) {
 			continue
 		}
 		node.Parents = append(node.Parents, s.provenanceTreeLocked(pid, visited))
@@ -46,7 +46,7 @@ func (s *Store) provenanceTreeMetaLocked(rootID uint64, visited map[uint64]struc
 	}
 
 	for _, pid := range ev.Parents {
-		if _, ok := s.events[pid]; !ok {
+		if !s.isEventIDValid(pid) {
 			continue
 		}
 		node.Parents = append(node.Parents, s.provenanceTreeMetaLocked(pid, visited))

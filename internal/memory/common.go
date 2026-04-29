@@ -13,7 +13,7 @@ func (s *Store) validateRootIDLocked(id uint64) error {
 			Reason: "id must be non-zero",
 		}
 	}
-	if _, ok := s.events[id]; !ok {
+	if !s.isEventIDValid(id) {
 		return &tree.RootIDError{
 			ID:     id,
 			Reason: "event not found",
@@ -31,6 +31,23 @@ func (s *Store) validateRootIDsLocked(rootIDs []uint64) error {
 		}
 	}
 	return nil
+}
+
+func (s *Store) isEventIDValid(id uint64) bool {
+	if id >= uint64(len(s.events)) || s.events[id].ID == 0 {
+		return false
+	}
+	return true
+}
+
+func (s *Store) countEvents() int {
+	var count int = 0
+	for _, ev := range s.events {
+		if ev.ID != 0 {
+			count++
+		}
+	}
+	return count
 }
 
 func sortedChildIDs(sli []uint64) []uint64 {

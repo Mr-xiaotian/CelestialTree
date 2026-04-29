@@ -81,6 +81,7 @@ type ProvenanceTreeMeta struct {
 type Snapshot struct {
 	Events      int    `json:"events"`
 	Edges       int    `json:"edges"`
+	Roots       int    `json:"roots"`
 	Heads       int    `json:"heads"`
 	Subscribers int    `json:"subscribers"`
 	NextEventID uint64 `json:"next_event_id"`
