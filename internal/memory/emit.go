@@ -56,6 +56,9 @@ func (s *Store) Emit(req tree.EmitRequest) (tree.Event, error) {
 
 	// 新事件默认是 head
 	s.heads[id] = struct{}{}
+	if len(parents) == 0 {
+		s.roots[id] = struct{}{}
+	}
 
 	// 有 parents -> parents 不再是 head；同时建立 parent -> child 边
 	for _, p := range parents {
