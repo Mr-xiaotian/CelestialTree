@@ -149,6 +149,8 @@ curl http://localhost:7777/descendants/2
 
 # 查询运行时快照
 curl http://localhost:7777/snapshot
+# 返回示例：
+# {"ts":1713709263,"goroutines":7,"edges":1480,"roots":1,"heads":43,"subscribers":5,"next_event_id":1524}
 ```
 
 ### 实时订阅（SSE）
@@ -254,15 +256,17 @@ CelestialTree/
 │   └── now/              # 小工具：输出当前 UTC 时间
 ├── internal/
 │   ├── tree/             # 核心数据模型（Event、树结构、错误类型）
-│   ├── memory/           # 内存存储引擎（DAG、索引、SSE 广播）
+│   ├── memory/           # 内存存储引擎（稀疏 slice + DAG 索引 + SSE 广播）
 │   ├── httpapi/          # HTTP REST API 处理器
 │   ├── grpcapi/          # gRPC API 实现
 │   └── version/          # 版本信息（编译期注入）
 ├── proto/                # Protobuf 定义与生成代码
-├── bench/                # 性能基准测试脚本（Python + Go）
+├── bench/                # 性能基准测试工具（HTTP + gRPC，Go 实现）
 ├── bin/                  # 编译产物
 ├── docs/
-│   └── internal/         # 内部模块详细文档（与源码一一对应）
+│   ├── internal/         # 内部模块详细文档（与源码一一对应）
+│   ├── cmd/              # cmd 模块文档
+│   └── bench/            # 基准测试工具文档
 └── README.md
 ```
 
@@ -296,6 +300,7 @@ CelestialFlow 中的每个 Task / Stage / Node
 * **事件不可变**：事件一旦写入不可修改、不可删除，保证历史可信
 * **因果显式化**：父子关系由调用方显式声明，而非隐式推断
 * **写入简单、查询强大**：写入只需 `type` + `parents`，查询支持单条、树形、批量、流式
+* **高性能内存优化**：事件以稀疏 slice 存储（ID 即下标），父子索引使用紧凑的 `[]uint64`，最大限度降低大规模场景下的内存开销
 * **不绑定具体任务系统**：纯事件语义，可接入任何产生状态变化的系统
 * **可作为基础设施长期运行**：轻量、无外部依赖、单二进制可部署
 
