@@ -12,7 +12,7 @@ import (
 // - heads:     当前没有子节点的事件集合（叶子集合）
 // - subs:      订阅者集合（用于 SSE 广播）
 type Store struct {
-	mu sync.Mutex // Maybe use RWMutex future
+	mu sync.Mutex // More write and less read, maybe use RWMutex in future, not now.
 
 	nextID uint64
 
@@ -24,6 +24,8 @@ type Store struct {
 	subsMu sync.Mutex
 	subs   map[uint64]chan tree.Event
 	subSeq uint64
+
+	typeIntern map[string]string
 }
 
 // NewStore 创建并返回一个空的 Store 实例，events 预分配 1024 容量。

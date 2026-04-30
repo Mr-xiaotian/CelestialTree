@@ -35,7 +35,7 @@ func (s *Store) Emit(req tree.EmitRequest) (tree.Event, error) {
 	ev := tree.Event{
 		ID:           id,
 		TimeUnixNano: now,
-		Type:         req.Type,
+		Type:         s.internType(req.Type),
 		Message:      req.Message,
 		Payload:      req.Payload,
 		Parents:      parents,
