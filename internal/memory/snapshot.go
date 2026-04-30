@@ -1,12 +1,14 @@
 package memory
 
 import (
+	"runtime"
+	"time"
+
 	"github.com/Mr-xiaotian/CelestialTree/internal/tree"
 )
 
 func (s *Store) Snapshot() tree.Snapshot {
 	s.mu.Lock()
-	events := s.countEvents()
 	roots := len(s.roots)
 	heads := len(s.heads)
 	nextEventID := s.nextID
@@ -21,7 +23,8 @@ func (s *Store) Snapshot() tree.Snapshot {
 	s.subsMu.Unlock()
 
 	return tree.Snapshot{
-		Events:      events,
+		TS:          time.Now().Unix(),
+		GoRoutines:  runtime.NumGoroutine(),
 		Edges:       edges,
 		Roots:       roots,
 		Heads:       heads,

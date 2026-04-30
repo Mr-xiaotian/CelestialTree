@@ -40,16 +40,6 @@ func (s *Store) isEventIDValid(id uint64) bool {
 	return true
 }
 
-func (s *Store) countEvents() int {
-	var count int = 0
-	for _, ev := range s.events {
-		if ev.ID != 0 {
-			count++
-		}
-	}
-	return count
-}
-
 func sortedChildIDs(sli []uint64) []uint64 {
 	if len(sli) == 0 {
 		return []uint64{}

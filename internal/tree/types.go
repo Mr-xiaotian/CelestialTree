@@ -79,7 +79,8 @@ type ProvenanceTreeMeta struct {
 }
 
 type Snapshot struct {
-	Events      int    `json:"events"`
+	TS          int64  `json:"ts"`
+	GoRoutines  int    `json:"goroutines"`
 	Edges       int    `json:"edges"`
 	Roots       int    `json:"roots"`
 	Heads       int    `json:"heads"`
