@@ -25,9 +25,8 @@ func handleSnapshot(store *memory.Store) http.HandlerFunc
 **Handler 内部逻辑**：
 
 1. **方法校验**：仅接受 `GET`。
-2. **存储查询**：调用 `store.Snapshot()`，获取 `tree.Snapshot` 结构体。
-3. **运行时信息补充**：额外采集当前 Go 运行时 goroutine 数量（`runtime.NumGoroutine()`）与当前 Unix 时间戳。
-4. **响应**：返回 `200 OK`，响应体为 JSON 对象。
+2. **存储查询**：调用 `store.Snapshot()`，获取 `tree.Snapshot` 结构体（已包含时间戳、goroutine 数量等运行时信息）。
+3. **响应**：返回 `200 OK`，响应体为 JSON 对象。
 
 **响应示例**：
 
@@ -35,8 +34,8 @@ func handleSnapshot(store *memory.Store) http.HandlerFunc
 {
   "ts": 1713709263,
   "goroutines": 7,
-  "events": 1523,
   "edges": 1480,
+  "roots": 1,
   "heads": 43,
   "subscribers": 5,
   "next_event_id": 1524
@@ -49,11 +48,11 @@ func handleSnapshot(store *memory.Store) http.HandlerFunc
 |------|------|------|------|
 | `ts` | `int64` | `time.Now().Unix()` | 快照生成时间戳（秒级）。 |
 | `goroutines` | `int` | `runtime.NumGoroutine()` | 当前进程中的 goroutine 数量，反映并发负载。 |
-| `events` | `int` | `store.Snapshot().Events` | 内存中存储的事件总数。 |
 | `edges` | `int` | `store.Snapshot().Edges` | DAG 中的边总数（即所有 parent->child 关系数）。 |
+| `roots` | `int` | `store.Snapshot().Roots` | 当前 Root（无父节点的事件）数量。 |
 | `heads` | `int` | `store.Snapshot().Heads` | 当前 Head（无子节点的事件）数量。 |
 | `subscribers` | `int` | `store.Snapshot().Subscribers` | 当前活跃的 SSE 订阅者数量。 |
-| `next_event_id` | `uint64` | `store.Snapshot().NextEventID` | 下一个将被分配的事件 ID。 |
+| `next_event_id` | `uint64` | `store.Snapshot().NextEventID` | 下一个将被分配的事件 ID，可用于推算事件规模。 |
 
 ## 与其他文件的关系
 
@@ -62,7 +61,6 @@ func handleSnapshot(store *memory.Store) http.HandlerFunc
 | 导入 | `internal/memory` | 调用 `memory.Store.Snapshot()` 获取存储层统计信息。 |
 | 同包协作 | `internal/httpapi/common.go` | 调用 `requireMethod`、`writeJSON`。 |
 | 同包协作 | `internal/httpapi/routes.go` | `RegisterRoutes` 中将 `/snapshot` 注册到此 Handler。 |
-| 标准库 | `runtime`, `time` | 采集 goroutine 数量与当前时间戳。 |
 
 ## 设计说明
 

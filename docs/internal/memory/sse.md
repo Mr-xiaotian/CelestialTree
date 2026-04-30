@@ -46,7 +46,7 @@ func (s *Store) Subscribe() (subID uint64, ch <-chan tree.Event, cancel func())
 func (s *Store) broadcast(ev tree.Event)
 ```
 
-将事件推送给所有当前活跃的 SSE 订阅者。该方法由 `Emit` 在事件写入成功后调用。
+将事件推送给所有当前活跃的 SSE 订阅者。该方法由 `Emit` 在事件写入成功并**释放 `mu` 锁之后**调用，避免广播期间阻塞其他读写操作。
 
 | 参数 | 类型 | 说明 |
 |-----|------|------|
@@ -77,7 +77,7 @@ default:
 | 导入 | `internal/tree` | 通道传输的数据类型为 `tree.Event`。 |
 | 标准库 | `sync/atomic` | 使用 `atomic.AddUint64` 安全分配订阅 ID。 |
 | 同包协作 | `internal/memory/store.go` | 操作 `Store.subs`、`Store.subSeq`，使用 `Store.subsMu`。 |
-| 同包协作 | `internal/memory/emit.go` | `Emit` 在事件写入成功后调用 `broadcast(ev)` 触发推送。 |
+| 同包协作 | `internal/memory/emit.go` | `Emit` 在事件写入成功并释放 `mu` 锁后调用 `broadcast(ev)` 触发推送。 |
 | 被调用 | `internal/httpapi/sse.go` | HTTP Handler 调用 `store.Subscribe()` 注册订阅，并持有返回的通道与取消函数管理 SSE 连接生命周期。 |
 
 ## 设计说明

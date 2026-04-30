@@ -28,21 +28,22 @@ func (s *Store) Get(id uint64) (tree.Event, bool)
 **实现细节**：
 
 1. 获取 `s.mu` 互斥锁（`Lock()` / `defer Unlock()`）。
-2. 在 `s.events` 映射中查找 `id`。
-3. 返回查找到的事件与是否存在标志。
+2. 调用 `isEventIDValid(id)` 检查 ID 是否在 `events` 稀疏 slice 的有效范围内且非零值。
+3. 若有效，通过 `s.events[id]` 直接下标访问返回事件。
 
-**时间复杂度**：**O(1)** —— 纯哈希表查找。
+**时间复杂度**：**O(1)** —— 数组直接寻址，比 map 查找更快（无 hash 计算，cache 友好）。
 
 ## 与其他文件的关系
 
 | 依赖方向 | 文件/包 | 关系说明 |
 |---------|--------|---------|
 | 导入 | `internal/tree` | 返回 `tree.Event` 类型。 |
-| 同包协作 | `internal/memory/store.go` | 读取 `Store.events` 映射。 |
+| 同包协作 | `internal/memory/store.go` | 读取 `Store.events` 稀疏 slice。 |
+| 同包协作 | `internal/memory/common.go` | 调用 `isEventIDValid` 检查事件存在性。 |
 | 被调用 | `internal/httpapi/event.go` | HTTP Handler `/event/{id}` 直接调用 `store.Get(id)`，若不存在返回 `404`。 |
 | 被间接使用 | `internal/memory/provenance.go` | 溯源树递归构建过程中通过 `s.events[rootID]` 直接访问事件（不经过 `Get` 方法，但在语义上等价）。 |
 
 ## 扩展建议
 
 - **读锁优化**：若 `Store.mu` 升级为 `sync.RWMutex`，`Get` 方法应使用 `RLock()` / `RUnlock()`，允许多个读取操作并发执行。
-- **缓存层**：当前纯内存存储本身已足够快（O(1) 哈希查找），无需额外缓存。若未来引入持久化后端（如 RocksDB、PostgreSQL），可在 `Store` 前增加 LRU 缓存，`Get` 作为缓存的首要入口。
+- **缓存层**：当前纯内存存储本身已足够快（O(1) 数组寻址），无需额外缓存。若未来引入持久化后端（如 RocksDB、PostgreSQL），可在 `Store` 前增加 LRU 缓存，`Get` 作为缓存的首要入口。

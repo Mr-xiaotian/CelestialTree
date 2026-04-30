@@ -124,15 +124,17 @@ type ProvenanceTreeMeta struct {
 
 ```go
 type Snapshot struct {
-    Events      int    `json:"events"`
+    TS          int64  `json:"ts"`
+    GoRoutines  int    `json:"goroutines"`
     Edges       int    `json:"edges"`
+    Roots       int    `json:"roots"`
     Heads       int    `json:"heads"`
     Subscribers int    `json:"subscribers"`
     NextEventID uint64 `json:"next_event_id"`
 }
 ```
 
-系统运行时快照，暴露当前内存存储的核心统计指标：事件总数、边总数、当前 Head（无子节点的叶子事件）数量、SSE 订阅者数量以及下一个即将分配的事件 ID。
+系统运行时快照，暴露当前内存存储的核心统计指标：采集时间戳、goroutine 数量、边总数、Root（无父节点的创世事件）数量、Head（无子节点的叶子事件）数量、SSE 订阅者数量以及下一个即将分配的事件 ID。
 
 ### `ResponseError`
 

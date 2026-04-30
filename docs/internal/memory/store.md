@@ -16,8 +16,8 @@ type Store struct {
 
     nextID uint64
 
-    events   map[uint64]tree.Event
-    children map[uint64]map[uint64]struct{}
+    events   []tree.Event
+    children map[uint64][]uint64
     roots    map[uint64]struct{}
     heads    map[uint64]struct{}
 
@@ -33,8 +33,8 @@ type Store struct {
 |------|------|------|
 | `mu` | `sync.Mutex` | 保护 `events`、`children`、`roots`、`heads`、`nextID` 的互斥锁。注释提示未来可能升级为 `sync.RWMutex` 以提升读并发。 |
 | `nextID` | `uint64` | 下一个待分配的事件 ID，通过 `atomic.AddUint64` 在 `Emit` 中安全递增。 |
-| `events` | `map[uint64]tree.Event` | 事件主存储，ID -> 事件实体的映射。 |
-| `children` | `map[uint64]map[uint64]struct{}` | 父子关系索引，parent ID -> set(child ID)。用于快速查询某事件的直接子事件，以及构建后代树。 |
+| `events` | `[]tree.Event` | 事件主存储，使用稀疏 slice，以事件 ID 为下标直接寻址。空洞位置为零值 `tree.Event{}`（`ID == 0`）。相比 `map[uint64]tree.Event`，省去了 map 的 bucket 元数据开销，在大规模场景下（1M+ 事件）显著降低内存占用。 |
+| `children` | `map[uint64][]uint64` | 父子关系索引，parent ID -> child ID 列表。相比之前的 `map[uint64]map[uint64]struct{}`，省去了每个内层 map 的 ~200 字节 header 开销。 |
 | `roots` | `map[uint64]struct{}` | 当前所有无父事件（创世事件）的 ID 集合。 |
 | `heads` | `map[uint64]struct{}` | 当前所有无子事件（叶子事件）的 ID 集合。新事件默认加入此集合；一旦有子事件产生，父事件即从集合中移除。 |
 | `subsMu` | `sync.Mutex` | 保护订阅者映射 `subs` 与序列号 `subSeq` 的互斥锁。与 `mu` 分离，避免订阅/取消订阅操作阻塞事件写入。 |
@@ -47,9 +47,9 @@ type Store struct {
 func NewStore() *Store
 ```
 
-`Store` 的构造函数，初始化所有内部映射并返回就绪的存储实例。
+`Store` 的构造函数，初始化所有内部映射与切片并返回就绪的存储实例。`events` 预分配 1024 容量。
 
-**返回值**：`*Store` —— 所有映射已初始化完成，可直接用于 `Emit`、`Get` 等操作。
+**返回值**：`*Store` —— 所有映射与切片已初始化完成，可直接用于 `Emit`、`Get` 等操作。
 
 **注意**：返回的 `Store` 中**不包含任何事件**。通常由 `cmd/celestialtree/main.go` 在启动后先调用 `store.Emit(tree.EmitRequest{Type: "genesis", ...})` 写入创世事件，再注册到 HTTP/gRPC 服务器。
 
@@ -74,7 +74,7 @@ func NewStore() *Store
 
 - **双锁分离**：`mu` 保护 DAG 数据，`subsMu` 保护订阅者集合。这种分离使得订阅/取消订阅操作不会阻塞事件写入，反之亦然。
 - **ID 分配无锁化**：`nextID` 与 `subSeq` 使用 `atomic.AddUint64` 在锁外安全递增，减少锁持有时间。
-- **广播非阻塞**：`broadcast` 在持有 `subsMu` 期间仅做 `select` + `default` 尝试发送，不会阻塞在慢消费者上。
+- **广播非阻塞**：`broadcast` 在 `mu` 锁释放**之后**调用（持有 `subsMu` 期间仅做 `select` + `default` 尝试发送），不会阻塞在慢消费者上，也不会在广播期间阻塞其他读写操作。
 
 ## 扩展建议
 

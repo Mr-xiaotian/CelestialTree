@@ -1,6 +1,22 @@
 # CelestialTree 内部模块文档索引
 
-本文档为 `internal/` 目录下所有 Go 源文件的对应说明文档索引，按包（package）组织。
+本文档为项目中所有 Go 源文件的对应说明文档索引，按包（package）组织。
+
+---
+
+## `cmd/celestialtree` — 服务入口
+
+| 源文件 | 文档 | 说明 |
+|--------|------|------|
+| `main.go` | [main.md](../cmd/celestialtree/main.md) | 服务主入口：参数解析、Store 初始化、HTTP/gRPC 双协议启动与优雅关闭。 |
+
+---
+
+## `cmd/now` — 构建辅助工具
+
+| 源文件 | 文档 | 说明 |
+|--------|------|------|
+| `main.go` | [main.md](../cmd/now/main.md) | 输出当前 UTC 时间（RFC3339），用于构建时注入版本时间戳。 |
 
 ---
 
@@ -32,7 +48,7 @@
 | `provenance.go` | [provenance.md](memory/provenance.md) | 溯源树构建：单条/批量、结构/元数据四种视图。 |
 | `snapshot.go` | [snapshot.md](memory/snapshot.md) | 运行时统计快照采集。 |
 | `sse.go` | [sse.md](memory/sse.md) | SSE 订阅者管理与事件广播机制。 |
-| `common.go` | [common.md](memory/common.md) | 内部辅助函数：根 ID 校验、子 ID 排序等。 |
+| `common.go` | [common.md](memory/common.md) | 内部辅助函数：根 ID 校验、事件 ID 有效性检查、子 ID 排序等。 |
 
 ---
 
@@ -59,6 +75,22 @@
 |--------|------|------|
 | `server.go` | [server.md](grpcapi/server.md) | gRPC 服务结构体 `Server` 定义与构造函数。 |
 | `emit.go` | [emit.md](grpcapi/emit.md) | gRPC `Emit` RPC 实现，Protobuf 与内部类型的协议转换。 |
+
+---
+
+## `bench/http` — HTTP 性能基准测试
+
+| 源文件 | 文档 | 说明 |
+|--------|------|------|
+| `emit.go` | [emit.md](../bench/http/emit.md) | HTTP `/emit` 端点的并发压测工具，输出 RPS 与延迟分布。 |
+
+---
+
+## `bench/grpc` — gRPC 性能基准测试
+
+| 源文件 | 文档 | 说明 |
+|--------|------|------|
+| `emit.go` | [emit.md](../bench/grpc/emit.md) | gRPC `Emit` RPC 的并发压测工具，输出 RPS 与延迟分布。 |
 
 ---
 

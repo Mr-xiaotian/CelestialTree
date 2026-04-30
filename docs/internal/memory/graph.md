@@ -30,7 +30,7 @@ func (s *Store) Children(id uint64) ([]uint64, bool)
 - `[]uint64`：子事件 ID 列表。若事件无子事件，返回空数组 `[]`（而非 `nil`）。
 - `bool`：`true` 表示父事件存在；`false` 表示父事件不存在。
 
-**实现细节**：在 `s.mu` 保护下读取 `s.children[id]`，将集合中的 ID 收集到切片中返回。不保证顺序（但调用方通常不需要严格顺序，或在外部排序）。
+**实现细节**：在 `s.mu` 保护下，先通过 `isEventIDValid` 检查父事件是否存在，再读取 `s.children[id]`，将列表拷贝到新切片后返回。返回的是内部数据的**副本**，调用方可安全修改而不影响内部状态。
 
 ### `(*Store) Ancestors`
 
@@ -55,7 +55,7 @@ func (s *Store) Ancestors(id uint64) ([]uint64, bool)
 2. 使用内部闭包函数 `dfs(cur uint64) bool` 递归遍历：
    - `visited` 集合防止重复访问（处理 DAG 中多路径汇聚到同一祖先的情况）。
    - `roots` 集合收集所有无父事件的起始点。
-   - 若某 `cur` 的父事件在 `s.events` 中不存在，返回 `false`，整个 `Ancestors` 调用失败。
+   - 通过 `isEventIDValid` 检查每个节点的存在性，若某 `cur` 或其父事件不存在，返回 `false`，整个 `Ancestors` 调用失败。
 3. 对收集到的根 ID 列表使用 `slices.Sort` 升序排序后返回。
 
 **时间复杂度**：O(V+E) 在最坏情况下，其中 V 为访问的节点数，E 为访问的边数。实际中由于 DAG 通常不深，开销很小。
@@ -100,4 +100,4 @@ func (s *Store) Roots() []uint64
 
 - **Heads/Roots 的实时性**：`heads` 与 `roots` 是 `Store` 在 `Emit` 时实时维护的集合，而非惰性计算。这使得 `Heads()` 与 `Roots()` 的查询非常快，仅需遍历少量元素。
 - **Ancestors 的防御性编程**：`dfs` 闭包在遍历中若发现某父事件不存在，会立即返回 `false`。这能在数据不一致（如索引损坏）时及时暴露问题，而不是静默返回错误结果。
-- **排序策略**：`Ancestors` 对结果排序是为了给调用方提供稳定、可测试的输出；`Children` 当前未排序，因为内部使用 `map` 遍历。若需要确定性顺序，可调用 `sortedChildIDs`（定义在 `common.go`）替代直接遍历。
+- **排序策略**：`Ancestors` 对结果排序是为了给调用方提供稳定、可测试的输出；`Children` 返回的是内部 slice 的拷贝，顺序与插入顺序一致（即 `Emit` 写入的顺序）。若需要确定性升序，可在外部排序。

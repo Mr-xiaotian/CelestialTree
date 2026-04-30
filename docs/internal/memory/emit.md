@@ -47,18 +47,20 @@ ev := tree.Event{
 }
 ```
 
-5. **加锁并写入 DAG**（`s.mu.Lock()` / `defer s.mu.Unlock()`）：
-   - **父事件存在性校验**：遍历所有 `parents`，若任一父 ID 在 `s.events` 中不存在，返回 `fmt.Errorf("parent %d not found", p)`。此规则确保 DAG 不会断裂。
+5. **加锁并写入 DAG**（`s.mu.Lock()`，手动 `s.mu.Unlock()`——不使用 `defer`，以便在锁外执行广播）：
+   - **父事件存在性校验**：遍历所有 `parents`，若任一父 ID 通过 `isEventIDValid` 校验失败，先 `s.mu.Unlock()` 再返回 `fmt.Errorf("parent %d not found", p)`。此规则确保 DAG 不会断裂。
+   - **扩展 events slice**：通过 `for uint64(len(s.events)) <= id` 循环追加零值 `tree.Event{}`，将稀疏 slice 扩展到足以容纳新 ID 的长度。
    - **写入事件**：`s.events[id] = ev`。
    - **更新 Head 集合**：新事件默认是 Head，`s.heads[id] = struct{}{}`。
    - **更新 Root 集合**：若 `parents` 为空，该事件为 Root，`s.roots[id] = struct{}{}`。
    - **更新父子关系索引**：遍历所有 `parents`：
-     - 在 `s.children[p]` 中新建子集合（若不存在）。
-     - 将新事件 ID 加入 `s.children[p]`。
+     - `s.children[p] = append(s.children[p], id)` —— 将新事件 ID 追加到父事件的子 ID 列表。
      - 将父事件从 `s.heads` 中移除（因为它现在有了子事件，不再是叶子）。
-6. **广播订阅者**（锁外，但 `broadcast` 内部使用 `subsMu`）：
+   - **释放锁**：`s.mu.Unlock()`。
+6. **广播订阅者**（锁外调用，`broadcast` 内部使用 `subsMu`）：
    - 调用 `s.broadcast(ev)`，将新事件推送给所有活跃的 SSE 订阅者。
    - 广播为非阻塞：慢消费者的通道若已满，事件会被丢弃。
+   - 广播在 `mu` 释放后执行，避免广播期间阻塞其他读写操作。
 
 ## 与其他文件的关系
 
