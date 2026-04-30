@@ -75,23 +75,23 @@ func (s *Store) Ancestors(id uint64) ([]uint64, bool) {
 	return out, true
 }
 
-func (s *Store) Heads() []uint64 {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	out := make([]uint64, 0, len(s.heads))
-	for id := range s.heads {
-		out = append(out, id)
-	}
-	return out
-}
-
 func (s *Store) Roots() []uint64 {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	out := make([]uint64, 0, len(s.roots))
 	for id := range s.roots {
+		out = append(out, id)
+	}
+	return out
+}
+
+func (s *Store) Heads() []uint64 {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	out := make([]uint64, 0, len(s.heads))
+	for id := range s.heads {
 		out = append(out, id)
 	}
 	return out

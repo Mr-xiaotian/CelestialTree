@@ -42,11 +42,11 @@ func (s *Store) Emit(req tree.EmitRequest) (tree.Event, error) {
 	}
 
 	s.mu.Lock()
-	defer s.mu.Unlock()
 
 	// 父事件必须存在：否则历史图会断裂
 	for _, p := range parents {
 		if !s.isEventIDValid(p) {
+			s.mu.Unlock()
 			return tree.Event{}, fmt.Errorf("parent %d not found", p)
 		}
 	}
@@ -68,6 +68,9 @@ func (s *Store) Emit(req tree.EmitRequest) (tree.Event, error) {
 		s.children[p] = append(s.children[p], id)
 		delete(s.heads, p)
 	}
+
+	// 追加事件到 DAG 中的过程是原子的：要么完全成功，要么完全失败，不会出现中间状态。
+	s.mu.Unlock()
 
 	// 广播给订阅者（非阻塞，慢订阅者可能丢事件：v0 的取舍）
 	s.broadcast(ev)
