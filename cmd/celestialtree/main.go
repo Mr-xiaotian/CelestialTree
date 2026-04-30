@@ -24,11 +24,13 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
+// Config 包含 HTTP 和 gRPC 服务的监听地址配置。
 type Config struct {
 	HTTPAddr string
 	GRPCAddr string
 }
 
+// parseConfig 从命令行参数解析服务配置，支持 http_addr/grpc_addr 或 host+port 组合。
 func parseConfig() Config {
 	httpAddrFlag := flag.String("http_addr", "", "http listen addr host:port (preferred)")
 	grpcAddrFlag := flag.String("grpc_addr", "", "grpc listen addr host:port (preferred)")
@@ -52,6 +54,7 @@ func parseConfig() Config {
 	return Config{HTTPAddr: httpAddr, GRPCAddr: grpcAddr}
 }
 
+// newStoreWithGenesis 创建 Store 并写入创世事件（Genesis），作为 DAG 的起点。
 func newStoreWithGenesis() (*memory.Store, error) {
 	store := memory.NewStore()
 
@@ -67,6 +70,7 @@ func newStoreWithGenesis() (*memory.Store, error) {
 	return store, nil
 }
 
+// newHTTPServer 创建并配置 HTTP 服务器，注册所有 API 路由。
 func newHTTPServer(addr string, store *memory.Store) *http.Server {
 	mux := http.NewServeMux()
 	httpapi.RegisterRoutes(mux, store)
@@ -79,6 +83,7 @@ func newHTTPServer(addr string, store *memory.Store) *http.Server {
 	}
 }
 
+// newGRPCServer 创建 gRPC 服务器并监听指定地址，注册 reflection 以支持调试。
 func newGRPCServer(addr string, store *memory.Store) (*grpc.Server, net.Listener, error) {
 	lis, err := net.Listen("tcp", addr)
 	if err != nil {

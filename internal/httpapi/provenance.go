@@ -8,6 +8,7 @@ import (
 	"github.com/Mr-xiaotian/CelestialTree/internal/tree"
 )
 
+// handleProvenance 处理 GET /provenance/{id}，返回单个事件的溯源树。
 func handleProvenance(store *memory.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if !requireMethod(w, r, http.MethodGet) {
@@ -45,6 +46,7 @@ func handleProvenance(store *memory.Store) http.HandlerFunc {
 	}
 }
 
+// handleProvenanceBatch 处理 POST /provenance，批量返回多个事件的溯源树。
 func handleProvenanceBatch(store *memory.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if !requireMethod(w, r, http.MethodPost) {

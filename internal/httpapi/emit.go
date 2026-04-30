@@ -7,6 +7,7 @@ import (
 	"github.com/Mr-xiaotian/CelestialTree/internal/tree"
 )
 
+// handleEmit 处理 POST /emit，将客户端提交的事件写入 DAG。
 func handleEmit(store *memory.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if !requireMethod(w, r, http.MethodPost) {

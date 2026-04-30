@@ -2,6 +2,7 @@ package memory
 
 import "github.com/Mr-xiaotian/CelestialTree/internal/tree"
 
+// provenanceTreeLocked 递归构建以 rootID 为起点的溯源树（仅 ID），向上追溯所有祖先。
 func (s *Store) provenanceTreeLocked(rootID uint64, visited map[uint64]struct{}) tree.ProvenanceTree {
 	if _, seen := visited[rootID]; seen {
 		return tree.ProvenanceTree{ID: rootID, IsRef: true, Parents: nil}
@@ -20,6 +21,7 @@ func (s *Store) provenanceTreeLocked(rootID uint64, visited map[uint64]struct{})
 	return node
 }
 
+// provenanceTreeMetaLocked 递归构建以 rootID 为起点的溯源树（含元数据）。
 func (s *Store) provenanceTreeMetaLocked(rootID uint64, visited map[uint64]struct{}) tree.ProvenanceTreeMeta {
 	ev := s.events[rootID]
 
@@ -54,6 +56,7 @@ func (s *Store) provenanceTreeMetaLocked(rootID uint64, visited map[uint64]struc
 	return node
 }
 
+// ProvenanceTree 返回以 rootID 为起点的溯源树（仅包含 ID 和结构）。
 func (s *Store) ProvenanceTree(rootID uint64) (tree.ProvenanceTree, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -67,6 +70,7 @@ func (s *Store) ProvenanceTree(rootID uint64) (tree.ProvenanceTree, error) {
 	return s.provenanceTreeLocked(rootID, visited), nil
 }
 
+// ProvenanceTreeMeta 返回以 rootID 为起点的溯源树（含事件元数据）。
 func (s *Store) ProvenanceTreeMeta(rootID uint64) (tree.ProvenanceTreeMeta, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -80,6 +84,7 @@ func (s *Store) ProvenanceTreeMeta(rootID uint64) (tree.ProvenanceTreeMeta, erro
 	return s.provenanceTreeMetaLocked(rootID, visited), nil
 }
 
+// ProvenanceForest 批量返回多个起点的溯源树（仅 ID）。
 func (s *Store) ProvenanceForest(rootIDs []uint64) ([]tree.ProvenanceTree, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -97,6 +102,7 @@ func (s *Store) ProvenanceForest(rootIDs []uint64) ([]tree.ProvenanceTree, error
 	return out, nil
 }
 
+// ProvenanceForestMeta 批量返回多个起点的溯源树（含元数据）。
 func (s *Store) ProvenanceForestMeta(rootIDs []uint64) ([]tree.ProvenanceTreeMeta, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()

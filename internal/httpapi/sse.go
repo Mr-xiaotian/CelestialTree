@@ -9,6 +9,7 @@ import (
 	"github.com/Mr-xiaotian/CelestialTree/internal/tree"
 )
 
+// handleSubscribe 处理 GET /subscribe，建立 SSE 长连接实时推送新事件。
 func handleSubscribe(store *memory.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {

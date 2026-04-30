@@ -12,6 +12,7 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
+// Emit 处理 gRPC Emit 请求，将 protobuf 请求转换为内部 EmitRequest 后写入 DAG。
 func (s *Server) Emit(ctx context.Context, req *pb.EmitRequest) (*pb.EmitResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "nil request")

@@ -7,6 +7,7 @@ import (
 	"github.com/Mr-xiaotian/CelestialTree/internal/tree"
 )
 
+// handleChildren 处理 GET /children/{id}，返回指定事件的直接子事件 ID 列表。
 func handleChildren(store *memory.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if !requireMethod(w, r, http.MethodGet) {
@@ -26,6 +27,7 @@ func handleChildren(store *memory.Store) http.HandlerFunc {
 	}
 }
 
+// handleAncestors 处理 GET /ancestors/{id}，返回指定事件可达的所有根节点 ID。
 func handleAncestors(store *memory.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if !requireMethod(w, r, http.MethodGet) {
@@ -46,6 +48,7 @@ func handleAncestors(store *memory.Store) http.HandlerFunc {
 	}
 }
 
+// handleHeads 处理 GET /heads，返回 DAG 中所有叶子节点的 ID 列表。
 func handleHeads(store *memory.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if !requireMethod(w, r, http.MethodGet) {
@@ -55,6 +58,7 @@ func handleHeads(store *memory.Store) http.HandlerFunc {
 	}
 }
 
+// handleRoots 处理 GET /roots，返回 DAG 中所有根节点的 ID 列表。
 func handleRoots(store *memory.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if !requireMethod(w, r, http.MethodGet) {

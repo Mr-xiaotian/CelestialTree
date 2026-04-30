@@ -2,6 +2,7 @@ package memory
 
 import "slices"
 
+// Children 返回指定事件的所有直接子事件 ID（拷贝），不存在则返回 false。
 func (s *Store) Children(id uint64) ([]uint64, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -21,6 +22,7 @@ func (s *Store) Children(id uint64) ([]uint64, bool) {
 	return out, true
 }
 
+// Ancestors 通过 DFS 向上追溯，返回指定事件可达的所有根节点 ID（已排序）。
 func (s *Store) Ancestors(id uint64) ([]uint64, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -75,6 +77,7 @@ func (s *Store) Ancestors(id uint64) ([]uint64, bool) {
 	return out, true
 }
 
+// Roots 返回 DAG 中所有根节点（无 parents 的事件）的 ID 列表。
 func (s *Store) Roots() []uint64 {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -86,6 +89,7 @@ func (s *Store) Roots() []uint64 {
 	return out
 }
 
+// Heads 返回 DAG 中所有叶子节点（无 children 的事件）的 ID 列表。
 func (s *Store) Heads() []uint64 {
 	s.mu.Lock()
 	defer s.mu.Unlock()

@@ -6,6 +6,7 @@ import (
 	"github.com/Mr-xiaotian/CelestialTree/internal/memory"
 )
 
+// handleSnapshot 处理 GET /snapshot，返回系统状态快照。
 func handleSnapshot(store *memory.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if !requireMethod(w, r, http.MethodGet) {

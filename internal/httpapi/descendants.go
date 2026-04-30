@@ -8,6 +8,7 @@ import (
 	"github.com/Mr-xiaotian/CelestialTree/internal/tree"
 )
 
+// handleDescendants 处理 GET /descendants/{id}，返回单个事件的后代树。
 func handleDescendants(store *memory.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if !requireMethod(w, r, http.MethodGet) {
@@ -45,6 +46,7 @@ func handleDescendants(store *memory.Store) http.HandlerFunc {
 	}
 }
 
+// handleDescendantsBatch 处理 POST /descendants，批量返回多个事件的后代树。
 func handleDescendantsBatch(store *memory.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if !requireMethod(w, r, http.MethodPost) {

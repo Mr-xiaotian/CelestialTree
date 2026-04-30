@@ -26,6 +26,7 @@ type Store struct {
 	subSeq uint64
 }
 
+// NewStore 创建并返回一个空的 Store 实例，events 预分配 1024 容量。
 func NewStore() *Store {
 	return &Store{
 		events:   make([]tree.Event, 0, 1024),

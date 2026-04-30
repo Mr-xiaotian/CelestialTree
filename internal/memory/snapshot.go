@@ -7,6 +7,7 @@ import (
 	"github.com/Mr-xiaotian/CelestialTree/internal/tree"
 )
 
+// Snapshot 返回当前系统状态的只读快照，包含节点/边/订阅者等统计信息。
 func (s *Store) Snapshot() tree.Snapshot {
 	s.mu.Lock()
 	roots := len(s.roots)

@@ -6,6 +6,7 @@ import (
 	"github.com/Mr-xiaotian/CelestialTree/internal/memory"
 )
 
+// RegisterRoutes 将所有 HTTP API 路由注册到 mux 上。
 func RegisterRoutes(mux *http.ServeMux, store *memory.Store) {
 	mux.HandleFunc("/emit", handleEmit(store))
 	mux.HandleFunc("/event/", handleGetEvent(store))

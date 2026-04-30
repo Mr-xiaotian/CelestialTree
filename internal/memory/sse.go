@@ -6,6 +6,7 @@ import (
 	"github.com/Mr-xiaotian/CelestialTree/internal/tree"
 )
 
+// Subscribe 注册一个事件订阅者，返回订阅 ID、事件通道和取消函数。
 func (s *Store) Subscribe() (subID uint64, ch <-chan tree.Event, cancel func()) {
 	s.subsMu.Lock()
 	defer s.subsMu.Unlock()
@@ -26,6 +27,7 @@ func (s *Store) Subscribe() (subID uint64, ch <-chan tree.Event, cancel func()) 
 	return subID, c, cancel
 }
 
+// broadcast 向所有订阅者非阻塞发送事件，慢订阅者会丢弃事件。
 func (s *Store) broadcast(ev tree.Event) {
 	s.subsMu.Lock()
 	defer s.subsMu.Unlock()

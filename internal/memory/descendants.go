@@ -2,6 +2,7 @@ package memory
 
 import "github.com/Mr-xiaotian/CelestialTree/internal/tree"
 
+// descendantsTreeLocked 递归构建以 rootID 为根的后代树（仅 ID），visited 用于环检测。
 func (s *Store) descendantsTreeLocked(rootID uint64, visited map[uint64]struct{}) tree.DescendantsTree {
 	if _, seen := visited[rootID]; seen {
 		return tree.DescendantsTree{ID: rootID, IsRef: true, Children: nil}
@@ -17,6 +18,7 @@ func (s *Store) descendantsTreeLocked(rootID uint64, visited map[uint64]struct{}
 	return node
 }
 
+// descendantsTreeMetaLocked 递归构建以 rootID 为根的后代树（含元数据），visited 用于环检测。
 func (s *Store) descendantsTreeMetaLocked(rootID uint64, visited map[uint64]struct{}) tree.DescendantsTreeMeta {
 	ev := s.events[rootID]
 
@@ -49,6 +51,7 @@ func (s *Store) descendantsTreeMetaLocked(rootID uint64, visited map[uint64]stru
 	return node
 }
 
+// DescendantsTree 返回以 rootID 为根的后代树（仅包含 ID 和结构）。
 func (s *Store) DescendantsTree(rootID uint64) (tree.DescendantsTree, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -62,6 +65,7 @@ func (s *Store) DescendantsTree(rootID uint64) (tree.DescendantsTree, error) {
 	return s.descendantsTreeLocked(rootID, visited), nil
 }
 
+// DescendantsTreeMeta 返回以 rootID 为根的后代树（含事件元数据）。
 func (s *Store) DescendantsTreeMeta(rootID uint64) (tree.DescendantsTreeMeta, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -75,6 +79,7 @@ func (s *Store) DescendantsTreeMeta(rootID uint64) (tree.DescendantsTreeMeta, er
 	return s.descendantsTreeMetaLocked(rootID, visited), nil
 }
 
+// DescendantsForest 批量返回多个根节点的后代树（仅 ID）。
 func (s *Store) DescendantsForest(rootIDs []uint64) ([]tree.DescendantsTree, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -92,6 +97,7 @@ func (s *Store) DescendantsForest(rootIDs []uint64) ([]tree.DescendantsTree, err
 	return out, nil
 }
 
+// DescendantsForestMeta 批量返回多个根节点的后代树（含元数据）。
 func (s *Store) DescendantsForestMeta(rootIDs []uint64) ([]tree.DescendantsTreeMeta, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()

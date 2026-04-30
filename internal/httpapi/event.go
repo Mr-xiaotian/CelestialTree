@@ -7,6 +7,7 @@ import (
 	"github.com/Mr-xiaotian/CelestialTree/internal/tree"
 )
 
+// handleGetEvent 处理 GET /event/{id}，返回指定 ID 的事件。
 func handleGetEvent(store *memory.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if !requireMethod(w, r, http.MethodGet) {

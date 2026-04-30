@@ -78,6 +78,7 @@ type ProvenanceTreeMeta struct {
 	Parents      []ProvenanceTreeMeta `json:"parents"`
 }
 
+// Snapshot 是系统运行时状态的快照，用于监控和调试。
 type Snapshot struct {
 	TS          int64  `json:"ts"`
 	GoRoutines  int    `json:"goroutines"`
