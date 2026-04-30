@@ -31,10 +31,11 @@ type Store struct {
 // NewStore 创建并返回一个空的 Store 实例，events 预分配 1024 容量。
 func NewStore() *Store {
 	return &Store{
-		events:   make([]tree.Event, 0, 1024),
-		children: make(map[uint64][]uint64),
-		roots:    make(map[uint64]struct{}),
-		heads:    make(map[uint64]struct{}),
-		subs:     make(map[uint64]chan tree.Event),
+		events:     make([]tree.Event, 0, 1024),
+		children:   make(map[uint64][]uint64),
+		roots:      make(map[uint64]struct{}),
+		heads:      make(map[uint64]struct{}),
+		subs:       make(map[uint64]chan tree.Event),
+		typeIntern: make(map[string]string),
 	}
 }
